@@ -5,6 +5,7 @@
     ../../modules/home/core
     ../../modules/home/shell
     ../../modules/home/programs
+    ../../modules/home/desktop
   ];
 
   programs.home-manager.enable = true;
