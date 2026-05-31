@@ -1,6 +1,10 @@
 { vars, ... }:
 
 {
+  imports = [
+    ../../modules/home/core
+  ];
+
   programs.home-manager.enable = true;
 
   home = {
