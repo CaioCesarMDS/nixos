@@ -25,7 +25,7 @@ let
   ];
 in
 {
-  imports = [ inputs.zen-browser.homeModules.twilight ];
+  imports = [ inputs.zen-browser.homeModules.default ];
 
   programs.zen-browser = {
     enable = true;

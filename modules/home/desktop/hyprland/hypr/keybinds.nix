@@ -4,7 +4,7 @@ let
 
   terminal = "kitty";
   explorer = "thunar";
-  browser = "firefox";
+  browser = "zen-beta";
   editor = "code";
 
   dsp = {
