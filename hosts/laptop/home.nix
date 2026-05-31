@@ -3,6 +3,8 @@
 {
   imports = [
     ../../modules/home/core
+    ../../modules/home/shell
+    ../../modules/home/programs
   ];
 
   programs.home-manager.enable = true;
