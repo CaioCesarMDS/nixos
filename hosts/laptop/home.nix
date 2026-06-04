@@ -5,7 +5,7 @@
     ../../modules/home/core
     ../../modules/home/shell
     ../../modules/home/programs
-    ../../modules/home/desktop
+    ../../modules/home/desktop/hyprland
   ];
 
   programs.home-manager.enable = true;
