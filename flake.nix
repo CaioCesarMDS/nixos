@@ -24,21 +24,21 @@
       ...
     }@inputs:
     let
-      vars = import ./hosts/default/variables.nix;
+      vars = import ./hosts/laptop/variables.nix;
     in
     {
       nixosConfigurations.${vars.hostname} = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         specialArgs = { inherit inputs vars; };
         modules = [
-          ./hosts/default/configuration.nix
+          ./hosts/laptop/configuration.nix
           home-manager.nixosModules.home-manager
           {
             home-manager = {
               useGlobalPkgs = true;
               useUserPackages = true;
               extraSpecialArgs = { inherit inputs vars; };
-              users.${vars.username} = import ./hosts/default/home.nix;
+              users.${vars.username} = import ./hosts/laptop/home.nix;
               backupFileExtension = "backup";
             };
           }
