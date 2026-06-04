@@ -34,7 +34,6 @@ in
       DisableAppUpdate = true;
       DisableTelemetry = true;
       DisablePocket = true;
-      DisplayBookmarksTemplate = true;
       NoDefaultBookmarks = true;
       PasswordManagerEnabled = false;
       ExtensionSettings = builtins.listToAttrs extensions;
