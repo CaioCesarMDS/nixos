@@ -1,0 +1,20 @@
+{ den, lib, ... }:
+{
+  den.default.nixos.system.stateVersion = "25.11";
+  den.default.homeManager.home.stateVersion = "25.11";
+
+  den.schema.user.classes = lib.mkDefault [ "homeManager" ];
+
+  den.default.includes = [
+    den.aspects.boot
+    den.aspects.nix
+    den.aspects.audio
+    den.aspects.security
+    den.aspects.locale
+    den.aspects.dbus
+    den.aspects.networking
+    den.aspects.bluetooth
+    den.aspects.packages
+    den.aspects.fonts
+  ];
+}

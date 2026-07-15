@@ -1,48 +1,38 @@
+# DO-NOT-EDIT. This file was auto-generated using github:vic/flake-file.
+# Use `nix run .#write-flake` to regenerate it.
 {
-  description = "NixOS config";
+
+  outputs = inputs: inputs.flake-parts.lib.mkFlake { inherit inputs; } (inputs.import-tree ./modules);
+
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    den.url = "github:denful/den";
+    flake-file.url = "github:vic/flake-file";
+    flake-parts = {
+      inputs.nixpkgs-lib.follows = "nixpkgs-lib";
+      url = "github:hercules-ci/flake-parts";
+    };
     home-manager = {
-      url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
+      url = "github:nix-community/home-manager";
+    };
+    import-tree.url = "github:vic/import-tree";
+    nixpkgs.url = "https://channels.nixos.org/nixpkgs-unstable/nixexprs.tar.xz";
+    nixpkgs-lib.follows = "nixpkgs";
+    sops-nix = {
+      inputs.nixpkgs.follows = "nixpkgs";
+      url = "github:Mic92/sops-nix";
     };
     spicetify-nix = {
-      url = "github:Gerg-L/spicetify-nix";
       inputs.nixpkgs.follows = "nixpkgs";
+      url = "github:Gerg-L/spicetify-nix";
     };
     zen-browser = {
+      inputs = {
+        home-manager.follows = "home-manager";
+        nixpkgs.follows = "nixpkgs";
+      };
       url = "github:0xc000022070/zen-browser-flake";
-      inputs.nixpkgs.follows = "nixpkgs";
-      inputs.home-manager.follows = "home-manager";
     };
   };
 
-  outputs =
-    {
-      nixpkgs,
-      home-manager,
-      ...
-    }@inputs:
-    let
-      vars = import ./hosts/laptop/variables.nix;
-    in
-    {
-      nixosConfigurations.${vars.hostname} = nixpkgs.lib.nixosSystem {
-        system = "x86_64-linux";
-        specialArgs = { inherit inputs vars; };
-        modules = [
-          ./hosts/laptop/configuration.nix
-          home-manager.nixosModules.home-manager
-          {
-            home-manager = {
-              useGlobalPkgs = true;
-              useUserPackages = true;
-              extraSpecialArgs = { inherit inputs vars; };
-              users.${vars.username} = import ./hosts/laptop/home.nix;
-              backupFileExtension = "backup";
-            };
-          }
-        ];
-      };
-    };
 }
