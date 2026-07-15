@@ -7,13 +7,18 @@
       (den.batteries.user-shell "zsh")
 
       den.aspects.ly
-
+      den.aspects.hyprland
+      den.aspects.hypridle
+      den.aspects.hyprlock
+      den.aspects.rofi
+      den.aspects.swaync
+      den.aspects.waybar
+      den.aspects.theme
+      den.aspects.xdg
       den.aspects.zsh
       den.aspects.cli-utils
-
       den.aspects.docker
       den.aspects.flatpak
-
       den.aspects.thunar
       den.aspects.kitty
       den.aspects.git
@@ -23,20 +28,13 @@
       den.aspects.spicetify
       den.aspects.vesktop
       den.aspects.zen-browser
-
-      den.aspects.hyprland
-      den.aspects.hypridle
-      den.aspects.hyprlock
-      den.aspects.rofi
-      den.aspects.swaync
-      den.aspects.waybar
     ];
 
     user =
       { ... }:
       {
         isNormalUser = true;
-        # initialPassword = "123456"; 
+        # initialPassword = "123456";
         extraGroups = [
           "wheel"
           "networkmanager"
