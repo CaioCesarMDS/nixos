@@ -6,7 +6,12 @@
       programs.kitty = {
         enable = true;
         enableGitIntegration = true;
-        shellIntegration.enableZshIntegration = true;
+        shellIntegration = {
+          enableBashIntegration = true;
+          enableFishIntegration = true;
+          enableZshIntegration = true;
+        };
+
         settings = {
           font_family = "JetBrainsMono Nerd Font";
           font_size = 12;
@@ -58,6 +63,8 @@
           color7 = "#bbbbbb";
           color15 = "#f8f8f8";
         };
+
       };
+
     };
 }
