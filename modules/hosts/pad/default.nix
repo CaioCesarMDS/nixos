@@ -3,6 +3,8 @@
     nixos =
       { pkgs, ... }:
       {
+        imports = [ ./_hardware-configuration.nix ];
+
         networking.hostName = "pad";
         boot.kernelParams = [
           "radeon.si_support=0"
