@@ -17,7 +17,6 @@
         (extension "darkreader" "addon@darkreader.org")
         (extension "steam-database" "firefox-extension@steamdb.info")
         (extension "web-developer" "{c45c406e-ab73-11d8-be73-000a95be3b12}")
-        (extension "violentmonkey" "{aecec67f-0d10-4fa7-b7c7-609a2db280cf}")
         (extension "absolute-enable-right-click" "{9350bc42-47fb-4598-ae0f-825e3dd9ceba}")
         (extension "enhancer-for-youtube" "enhancerforyoutube@maximerf.addons.mozilla.org")
         (extension "return-youtube-dislikes" "{762f9885-5a13-4abd-9c77-433dcd38b8fd}")
@@ -84,6 +83,13 @@
             ];
           };
         };
+      };
+
+      xdg.mimeApps.defaultApplications = {
+        "x-scheme-handler/http" = "zen.desktop";
+        "x-scheme-handler/https" = "zen.desktop";
+        "x-scheme-handler/chrome" = "zen.desktop";
+        "application/xhtml+xml" = "zen.desktop";
       };
     };
 }
