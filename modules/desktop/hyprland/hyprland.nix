@@ -264,7 +264,7 @@
               force_default_wallpaper = 0;
               disable_hyprland_logo = true;
               disable_splash_rendering = true;
-              font_family = "JetBrainsNerdFont Mono";
+              font_family = "JetBrainsMono Nerd Font";
               focus_on_activate = true;
               close_special_on_empty = true;
               enable_swallow = true;

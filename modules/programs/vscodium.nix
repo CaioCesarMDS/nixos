@@ -23,7 +23,7 @@
         "breadcrumbs.enabled" = false;
         "workbench.list.smoothScrolling" = true;
 
-        "editor.fontFamily" = "JetBrainsMono Nerd Font Propo";
+        "editor.fontFamily" = "JetBrainsMono Nerd Font";
         "editor.fontSize" = 15;
         "editor.lineHeight" = 1.8;
         "editor.fontLigatures" = true;
@@ -76,7 +76,7 @@
           ".gitignore" = ".gitattributes; .gitmodules";
         };
 
-        "terminal.integrated.fontFamily" = "JetBrainsMono Nerd Font Propo";
+        "terminal.integrated.fontFamily" = "JetBrainsMono Nerd Font Mono";
         "terminal.integrated.fontSize" = 14;
         "terminal.integrated.fontLigatures.enabled" = true;
         "terminal.integrated.cursorBlinking" = true;

@@ -23,7 +23,7 @@
           "[fullscreen] <C-o>" = "zoom out";
         };
         extraConfig = ''
-          set font "JetBrainsMono Nerd Font 11"
+          set font "JetBrainsMono Nerd Font"
         '';
       };
 

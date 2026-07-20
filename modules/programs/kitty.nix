@@ -13,7 +13,7 @@
         };
 
         settings = {
-          font_family = "JetBrainsMono Nerd Font";
+          font_family = "JetBrainsMono Nerd Font Mono";
           font_size = 12;
           wheel_scroll_min_lines = 1;
           window_padding_width = 4;
@@ -66,7 +66,7 @@
 
       };
       home.sessionVariables.TERMINAL = "kitty";
-      
+
       xdg.mimeApps.defaultApplications = {
         "x-scheme-handler/terminal" = "kitty.desktop";
       };
