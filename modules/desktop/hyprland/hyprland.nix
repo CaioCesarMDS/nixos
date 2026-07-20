@@ -219,7 +219,11 @@
 
           config = {
             general = {
-              border_size = 0;
+              border_size = 2;
+              col = {
+                active_border = "#8A8A8A";
+                inactive_border = "#383838";
+              };
               gaps_in = 3;
               gaps_out = 10;
               allow_tearing = true;
@@ -236,10 +240,10 @@
               active_opacity = 1.0;
               inactive_opacity = 0.8;
               shadow = {
-                enabled = false;
-                range = 10;
+                enabled = true;
+                range = 5;
                 render_power = 2;
-                color = "rgba(1a1a1aee)";
+                color = "rgba(34, 34, 2, 0.07)";
               };
               blur = {
                 enabled = true;
