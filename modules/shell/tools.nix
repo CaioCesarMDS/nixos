@@ -1,14 +1,18 @@
 { ... }:
 {
-  den.aspects.cli-utils.homeManager =
+  den.aspects.cli-tools.homeManager =
     { pkgs, ... }:
     {
-      home.packages = with pkgs; [
-        bat
-        cmatrix
-        fd
-        ripgrep
-      ];
+      home = {
+        packages = with pkgs; [
+          bat
+          cmatrix
+          fd
+          ripgrep
+        ];
+
+        sessionVariables.MANPAGER = "sh -c 'col -bx | bat -l man -p'";
+      };
 
       programs.eza = {
         enable = true;
@@ -41,14 +45,18 @@
           "--border"
           "--info=inline"
         ];
-        fileWidgetOptions = [
-          "--walker-skip=.git,node_modules,target,dist,.direnv,result"
-          "--preview 'bat -n --color=always {} || cat {}'"
-          "--bind 'ctrl-/:change-preview-window(down|hidden|)'"
-        ];
-        historyWidgetOptions = [
-          "--style=full"
-        ];
+        fileWidget = {
+          options = [
+            "--walker-skip=.git,node_modules,target,dist,.direnv,result"
+            "--preview 'bat -n --color=always {} || cat {}'"
+            "--bind 'ctrl-/:change-preview-window(down|hidden|)'"
+          ];
+        };
+        historyWidget = {
+          options = [
+            "--style=full"
+          ];
+        };
       };
 
       programs.starship = {
