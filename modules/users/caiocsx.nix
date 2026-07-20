@@ -16,6 +16,7 @@
 
       den.aspects.theme
       den.aspects.xdg
+      den.aspects.wallpapers
 
       den.aspects.zsh
       den.aspects.cli-tools
