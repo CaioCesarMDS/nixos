@@ -1,41 +1,25 @@
 { ... }:
 {
-  den.aspects.nix = {
-    nixos =
-      { pkgs, ... }:
-      {
-        nix = {
-          settings = {
-            experimental-features = [
-              "nix-command"
-              "flakes"
-            ];
-            auto-optimise-store = true;
-            keep-outputs = true;
-            keep-derivations = true;
-          };
-          gc = {
-            automatic = true;
-            dates = "weekly";
-            options = "--delete-older-than 7d";
-          };
-          optimise.automatic = true;
-          package = pkgs.nixVersions.latest;
+  den.aspects.nix.nixos =
+    { pkgs, ... }:
+    {
+      nix = {
+        settings = {
+          experimental-features = [
+            "nix-command"
+            "flakes"
+          ];
+          auto-optimise-store = true;
+          keep-outputs = true;
+          keep-derivations = true;
         };
-
-        nixpkgs.config = {
-          allowUnfree = true;
-          nvidia.acceptLicense = true;
+        gc = {
+          automatic = true;
+          dates = "weekly";
+          options = "--delete-older-than 14d";
         };
+        optimise.automatic = true;
+        package = pkgs.nixVersions.stable;
       };
-
-    homeManager =
-      { ... }:
-      {
-        nixpkgs.config = {
-          allowUnfree = true;
-          nvidia.acceptLicense = true;
-        };
-      };
-  };
+    };
 }
