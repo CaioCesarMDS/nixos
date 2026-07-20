@@ -23,9 +23,13 @@
           "video/x-msvideo" = "mpv.desktop";
           "video/x-ms-wmv" = "mpv.desktop";
           "video/mpeg" = "mpv.desktop";
-          "audio/flac" = "mpv.desktop";
+
           "audio/mpeg" = "mpv.desktop";
+          "audio/flac" = "mpv.desktop";
           "audio/ogg" = "mpv.desktop";
+          "audio/wav" = "mpv.desktop";
+          "audio/mp4" = "mpv.desktop";
+          "audio/x-m4a" = "mpv.desktop";
         };
 
         dataFile."applications/mpv.desktop".text = ''
