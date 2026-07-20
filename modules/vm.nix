@@ -1,20 +1,16 @@
-{ inputs, den, ... }:
+{ inputs, lib, ... }:
 {
-
-  den.aspects.pad.includes = [ (den.batteries.tty-autologin "caiocsx") ];
-
-  perSystem =
-    { pkgs, ... }:
-    {
-      packages.vm = pkgs.writeShellApplication {
-        name = "vm";
-        text =
-          let
-            host = inputs.self.nixosConfigurations.pad.config;
-          in
-          ''
-            ${host.system.build.vm}/bin/run-${host.networking.hostName}-vm "$@"
+  perSystem = { pkgs, ... }: {
+    packages = lib.mapAttrs' (
+      hostName: hostSystem:
+      lib.nameValuePair "vm-${hostName}" (
+        pkgs.writeShellApplication {
+          name = "vm-${hostName}";
+          text = ''
+            ${hostSystem.config.system.build.vm}/bin/run-${hostName}-vm "$@"
           '';
-      };
-    };
+        }
+      )
+    ) inputs.self.nixosConfigurations;
+  };
 }
