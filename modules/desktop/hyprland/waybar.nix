@@ -145,11 +145,11 @@
               "weeks-pos" = "right";
               "on-scroll" = 1;
               "format" = {
-                "months" = "<span color='#ffead3'><b>{}</b></span>";
-                "days" = "<span color='#ecc6d9'><b>{}</b></span>";
-                "weeks" = "<span color='#99ffdd'><b>W{}</b></span>";
-                "weekdays" = "<span color='#ffcc66'><b>{}</b></span>";
-                "today" = "<span color='#ff6699'><b><u>{}</u></b></span>";
+                "months" = "<span color='#B392F0'><b>{}</b></span>";
+                "days" = "<span color='#CCCCCC'><b>{}</b></span>";
+                "weeks" = "<span color='#79B8FF'><b>W{}</b></span>";
+                "weekdays" = "<span color='#A0A0A0'><b>{}</b></span>";
+                "today" = "<span color='#FF7A84'><b><u>{}</u></b></span>";
               };
             };
             "actions" = {
@@ -205,6 +205,8 @@
               "custom/hardware"
               "cpu"
               "memory"
+              "disk"
+              "temperature"
             ];
           };
           "custom/hardware" = {
@@ -222,6 +224,31 @@
               "<span font='JetBrainsMono Nerd Font Mono 15' rise='-2600'></span> <span font='JetBrainsMono Nerd Font Mono 9'>{percentage}%</span>";
             "tooltip" = true;
             "interval" = 5;
+          };
+          "disk" = {
+            "path" = "/";
+            "interval" = 30;
+            "states" = {
+              "warning" = 90;
+              "critical" = 95;
+            };
+            "format" =
+              "<span font='JetBrainsMono Nerd Font Mono 15' rise='-2600'></span> <span font='JetBrainsMono Nerd Font Mono 9'>{percentage_used}%</span>";
+            "tooltip" = true;
+            "tooltip-format" = "Free: {free} / {total} ({percentage_free}%)\nUsed: {used} ({percentage_used}%)";
+          };
+          "temperature" = {
+            "hwmon-path" = "/sys/class/hwmon/hwmon2/temp1_input";
+            "critical-threshold" = 85;
+            "interval" = 10;
+            "format" =
+              "<span font='JetBrainsMono Nerd Font Mono 11'>{icon}</span> <span font='JetBrainsMono Nerd Font Mono 9' rise='1000'>{temperatureC}°C</span>";
+            "format-icons" = [
+              "󱃃"
+              "󰔏"
+              "󱃂"
+            ];
+            "tooltip-format" = "Temperature: {temperatureC}°C";
           };
           "group/group-tools" = {
             "orientation" = "inherit";
@@ -342,6 +369,7 @@
           @define-color accent-primary #B392F0;
           @define-color accent-active  #79B8FF;
           @define-color accent-urgent  #FF7A84;
+          @define-color accent-warning #FFD866;
 
           * {
             all: unset;
@@ -371,6 +399,8 @@
           #custom-hardware:hover,
           #cpu:hover,
           #memory:hover,
+          #disk:hover,
+          #temperature:hover,
           #custom-tools:hover,
           #custom-cliphist:hover,
           #custom-bluefilter:hover,
@@ -469,7 +499,7 @@
           }
 
           /* Rigth Components */
-          #memory,
+          #temperature,
           #custom-bluefilter,
           #custom-power {
             padding-right: 1rem;
@@ -479,6 +509,8 @@
 
           #cpu,
           #memory,
+          #disk,
+          #temperature,
           #custom-cliphist,
           #custom-colorpicker,
           #custom-bluefilter,
@@ -491,7 +523,26 @@
             background-color: @background;
           }
 
-          #memory,
+          #memory {
+            padding: 0 0.8rem 0 0.8rem;
+          }
+
+          #disk {
+            padding: 0 0.8rem 0 0;
+          }
+
+          #disk.warning {
+            color: @accent-warning;
+          }
+
+          #disk.critical {
+            color: @accent-urgent;
+          }
+
+          #temperature.critical {
+            color: @accent-urgent;
+          }
+
           #custom-colorpicker {
             padding: 0 0.8rem;
           }
