@@ -326,6 +326,7 @@
         }
 
         element selected.normal {
+          text-color:             @background;
           background-color:       @accent-active;
         }
 
