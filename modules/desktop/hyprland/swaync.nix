@@ -105,7 +105,7 @@
             outline: none;
             text-shadow: none;
             color: @foreground;
-            font-family: "JetBrainsMono Nerd Font Mono", "monospace";
+            font-family: "JetBrainsMono Nerd Font Mono";
           }
 
           /* Control Center */
@@ -283,7 +283,7 @@
           }
 
           .widget-buttons-grid > flowbox > flowboxchild > button:hover {
-            background-color: @foreground-muted;
+            background-color: @accent-active;
             box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.2);
             transition: all 0.5s ease;
           }

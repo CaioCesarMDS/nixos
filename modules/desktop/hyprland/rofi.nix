@@ -190,7 +190,7 @@
 
         element selected.normal {
           background-color:       @accent-active;
-          text-color:             @foreground;
+          text-color:             @background-alt;
         }
 
         message {
@@ -274,6 +274,7 @@
 
         button selected {
           background-color:       @accent-active;
+          text-color:             @background-alt;
         }
 
         inputbar {
