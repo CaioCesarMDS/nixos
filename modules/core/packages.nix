@@ -22,6 +22,7 @@
         jq
         tree
         nixfmt
+        nh
         # --- Archive ---
         p7zip
         unzip
