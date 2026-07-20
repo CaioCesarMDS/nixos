@@ -50,10 +50,12 @@
             lah = "eza -lah";
             lt = "eza -aT";
 
-            nix-clean = "sudo nix-collect-garbage -d && nix-collect-garbage -d";
-            nix-rebuild = "sudo nixos-rebuild switch --flake ~/nixos#";
+            nix-check = "nix flake check";
+            nix-write = "nix run .#write-flake";
+            nix-clean = "nh clean all";
+            nix-rebuild = "nh os switch ~/nixos";
             nix-update = "nix flake update --flake ~/nixos";
-            nix-upgrade = "nix flake update --flake ~/nixos && sudo nixos-rebuild switch --flake ~/nixos#";
+            nix-upgrade = "nix flake update --flake ~/nixos && nh os switch ~/nixos";
           };
 
           plugins = [
@@ -64,6 +66,11 @@
             {
               name = "you-should-use";
               src = pkgs.zsh-you-should-use + "/share/zsh/plugins/you-should-use";
+            }
+            {
+              name = "autopair";
+              src = pkgs.zsh-autopair;
+              file = "share/zsh/zsh-autopair/autopair.zsh";
             }
           ];
         };
