@@ -92,35 +92,44 @@
         runtimeInputs = with pkgs; [
           coreutils
           networkmanager
-          gnugrep
+          iw
           gawk
         ];
+
         text = ''
           output=""
 
           check_network() {
-            local status strength level icon
-            status="$(nmcli general status | grep -oh '\w*connect\w*')"
+            local status iface signal icon
+
+            status="$(nmcli -t -f STATE general)"
 
             case "$status" in
-              disconnected) output+="󰤮" ;;
-              connecting) output+="󱍸" ;;
               connected)
-                strength="$(nmcli -t -f ACTIVE,SIGNAL dev wifi | awk -F: '/^yes/{print $2}')"
-                if [[ -n "$strength" ]]; then
-                  level=$((strength / 25))
-                  case $level in
-                    0) icon="󰤯" ;;
-                    1) icon="󰤟" ;;
-                    2) icon="󰤢" ;;
-                    3) icon="󰤥" ;;
-                    4) icon="󰤨" ;;
-                    *) icon="󰤨" ;;
+                iface="$(nmcli -t -f DEVICE,TYPE device status | awk -F: '$2=="wifi"{print $1; exit}')"
+
+                if [[ -n "$iface" ]]; then
+                  signal="$(iw dev "$iface" link | awk '/signal:/ {print $2}')"
+
+                  case "$signal" in
+                    -[0-5][0-9]|-6[0-4]) icon="󰤨" ;;
+                    -6[5-9]|-7[0-4])     icon="󰤥" ;;
+                    -7[5-9]|-8[0-4])     icon="󰤢" ;;
+                    -8[5-9]|-9[0-4])     icon="󰤟" ;;
+                    *)                   icon="󰤯" ;;
                   esac
-                  output+="$icon"
+
+                  output="$icon"
                 else
-                  output+="󰈀"
+                  output="󰈀"
                 fi
+                ;;
+
+              connecting)
+                output="󱍸"
+                ;;
+              *)
+                output="󰤮"
                 ;;
             esac
           }
@@ -221,135 +230,142 @@
         hyprlockLock
       ];
 
-      programs.hyprlock = {
-        enable = true;
-        settings = {
-          general = {
-            hide_cursor = true;
-            ignore_empty_input = true;
+      programs.hyprlock =
+        let
+          font = "JetBrainsMono Nerd Font Mono";
+          fontBold = "JetBrainsMono Nerd Font Mono Bold";
+
+          fg = "rgba(229, 229, 229, 1)";
+        in
+        {
+          enable = true;
+          settings = {
+            general = {
+              hide_cursor = true;
+              ignore_empty_input = true;
+            };
+            background = [
+              {
+                monitor = "";
+                path = "$HOME/.cache/wallpaper/lockscreen";
+                color = "rgba(13, 13, 13, 1)";
+                blur_passes = 3;
+                blur_size = 2;
+                brightness = 0.6;
+              }
+            ];
+            label = [
+              {
+                monitor = "";
+                text = "cmd[update:1000] hyprlock-song";
+                color = fg;
+                font_size = 11;
+                font_family = font;
+                position = "10, 520";
+                halign = "left";
+                valign = "center";
+              }
+              {
+                monitor = "";
+                text = "cmd[update:1000] hyprlock-layout";
+                font_size = 10;
+                font_family = font;
+                position = "-150, 520";
+                halign = "right";
+                valign = "center";
+              }
+              {
+                monitor = "";
+                text = " ";
+                font_size = 16;
+                font_family = font;
+                position = "-130, 520";
+                halign = "right";
+                valign = "center";
+              }
+              {
+                monitor = "";
+                text = "cmd[update:1000] hyprlock-network";
+                color = fg;
+                font_size = 18;
+                font_family = font;
+                position = "-90, 520";
+                halign = "right";
+                valign = "center";
+              }
+              {
+                monitor = "";
+                text = "cmd[update:1000] hyprlock-battery";
+                color = fg;
+                font_size = 11;
+                font_family = font;
+                position = "-10, 520";
+                halign = "right";
+                valign = "center";
+              }
+              {
+                monitor = "";
+                text = "cmd[update:1000] echo \"$(date +\"%A, %B %d\")\"";
+                color = fg;
+                font_size = 20;
+                font_family = fontBold;
+                position = "0, 405";
+                halign = "center";
+                valign = "center";
+              }
+              {
+                monitor = "";
+                text = "cmd[update:1000] echo \"$(date +\"%k:%M\")\"";
+                color = fg;
+                font_size = 93;
+                font_family = fontBold;
+                position = "0, 310";
+                halign = "center";
+                valign = "center";
+              }
+              {
+                monitor = "";
+                text = "Enter Password";
+                color = fg;
+                font_size = 10;
+                font_family = font;
+                position = "0, -438";
+                halign = "center";
+                valign = "center";
+              }
+              {
+                monitor = "";
+                text = "cmd[update:100] hyprlock-lock";
+                color = fg;
+                font_size = 10;
+                font_family = font;
+                position = "0, -500";
+                halign = "center";
+                valign = "center";
+              }
+            ];
+            "input-field" = [
+              {
+                monitor = "";
+                size = "200, 30";
+                outline_thickness = 0;
+                dots_size = 0.25;
+                dots_spacing = 0.55;
+                dots_center = true;
+                dots_rounding = -1;
+                outer_color = "rgba(0, 0, 0, 0)";
+                inner_color = "rgba(0, 0, 0, 0.2)";
+                font_color = fg;
+                font_family = font;
+                fade_on_empty = true;
+                check_color = "rgba(0, 0, 0, 0.4)";
+                fail_text = "$FAIL <b>($ATTEMPTS)</b>";
+                position = "0, -468";
+                halign = "center";
+                valign = "center";
+              }
+            ];
           };
-          background = [
-            {
-              monitor = "";
-              path = "$HOME/.cache/wallpaper/lockscreen";
-              color = "rgba(13, 13, 13, 1)";
-              blur_passes = 3;
-              blur_size = 2;
-              brightness = 0.6;
-            }
-          ];
-          label = [
-            {
-              monitor = "";
-              text = "cmd[update:1000] hyprlock-song";
-              color = "rgba(229, 229, 229, 1)";
-              font_size = 11;
-              font_family = "JetBrainsMono Nerd Font Mono";
-              position = "10, 520";
-              halign = "left";
-              valign = "center";
-            }
-            {
-              monitor = "";
-              text = "cmd[update:1000] hyprlock-layout";
-              font_size = 10;
-              font_family = "JetBrainsMono Nerd Font Mono";
-              position = "-150, 520";
-              halign = "right";
-              valign = "center";
-            }
-            {
-              monitor = "";
-              text = " ";
-              font_size = 16;
-              font_family = "JetBrainsMono Nerd Font Mono";
-              position = "-130, 520";
-              halign = "right";
-              valign = "center";
-            }
-            {
-              monitor = "";
-              text = "cmd[update:1000] hyprlock-network";
-              color = "rgba(229, 229, 229, 1)";
-              font_size = 18;
-              font_family = "JetBrainsMono Nerd Font Mono";
-              position = "-90, 520";
-              halign = "right";
-              valign = "center";
-            }
-            {
-              monitor = "";
-              text = "cmd[update:1000] hyprlock-battery";
-              color = "rgba(229, 229, 229, 1)";
-              font_size = 11;
-              font_family = "JetBrainsMono Nerd Font Mono";
-              position = "-10, 520";
-              halign = "right";
-              valign = "center";
-            }
-            {
-              monitor = "";
-              text = "cmd[update:1000] echo \"$(date +\"%A, %B %d\")\"";
-              color = "rgba(229, 229, 229, 1)";
-              font_size = 20;
-              font_family = "JetBrainsMono Nerd Font Mono Bold";
-              position = "0, 405";
-              halign = "center";
-              valign = "center";
-            }
-            {
-              monitor = "";
-              text = "cmd[update:1000] echo \"$(date +\"%k:%M\")\"";
-              color = "rgba(229, 229, 229, 1)";
-              font_size = 93;
-              font_family = "JetBrainsMono Nerd Font Mono Bold";
-              position = "0, 310";
-              halign = "center";
-              valign = "center";
-            }
-            {
-              monitor = "";
-              text = "Enter Password";
-              color = "rgba(229, 229, 229, 1)";
-              font_size = 10;
-              font_family = "JetBrainsMono Nerd Font Mono";
-              position = "0, -438";
-              halign = "center";
-              valign = "center";
-            }
-            {
-              monitor = "";
-              text = "cmd[update:100] hyprlock-lock";
-              color = "rgba(229, 229, 229, 1)";
-              font_size = 10;
-              font_family = "JetBrainsMono Nerd Font Mono";
-              position = "0, -500";
-              halign = "center";
-              valign = "center";
-            }
-          ];
-          "input-field" = [
-            {
-              monitor = "";
-              size = "200, 30";
-              outline_thickness = 0;
-              dots_size = 0.25;
-              dots_spacing = 0.55;
-              dots_center = true;
-              dots_rounding = -1;
-              outer_color = "rgba(0, 0, 0, 0)";
-              inner_color = "rgba(0, 0, 0, 0.2)";
-              font_color = "rgba(229, 229, 229, 1)";
-              font_family = "JetBrainsMono Nerd Font Mono";
-              fade_on_empty = true;
-              check_color = "rgba(0, 0, 0, 0.4)";
-              fail_text = "$FAIL <b>($ATTEMPTS)</b>";
-              position = "0, -468";
-              halign = "center";
-              valign = "center";
-            }
-          ];
         };
-      };
     };
 }
