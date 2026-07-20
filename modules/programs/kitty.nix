@@ -65,6 +65,10 @@
         };
 
       };
-
+      home.sessionVariables.TERMINAL = "kitty";
+      
+      xdg.mimeApps.defaultApplications = {
+        "x-scheme-handler/terminal" = "kitty.desktop";
+      };
     };
 }

@@ -98,5 +98,15 @@
           };
         };
       };
+
+      home.sessionVariables.EDITOR = "codium";
+
+      xdg.mimeApps.defaultApplications = {
+        "text/plain" = "codium.desktop";
+        "text/markdown" = "codium.desktop";
+        "application/json" = "codium.desktop";
+        "text/css" = "codium.desktop";
+        "text/html" = "codium.desktop";
+      };
     };
 }

@@ -26,6 +26,20 @@
           set font "JetBrainsMono Nerd Font 11"
         '';
       };
+
+      xdg = {
+        mimeApps.defaultApplications = {
+          "application/pdf" = "org.pwmt.zathura.desktop";
+        };
+
+        dataFile."applications/org.pwmt.zathura.desktop".text = ''
+          [Desktop Entry]
+          Type=Application
+          Name=Zathura
+          Exec=zathura %U
+          NoDisplay=true
+        '';
+      };
     };
 
 }
