@@ -13,18 +13,26 @@
       den.aspects.rofi
       den.aspects.swaync
       den.aspects.waybar
+
       den.aspects.theme
       den.aspects.xdg
+
       den.aspects.zsh
-      den.aspects.cli-utils
-      den.aspects.docker
-      den.aspects.flatpak
-      den.aspects.thunar
-      den.aspects.kitty
+      den.aspects.cli-tools
       den.aspects.git
       den.aspects.btop
       den.aspects.fastfetch
+      den.aspects.direnv
+      den.aspects.docker
+      den.aspects.flatpak
+
+      den.aspects.kitty
+      den.aspects.thunar
+      den.aspects.vscodium
+      den.aspects.imv
       den.aspects.mpv
+      den.aspects.zathura
+      den.aspects.qbittorrent
       den.aspects.spicetify
       den.aspects.vesktop
       den.aspects.zen-browser
@@ -34,7 +42,7 @@
       { ... }:
       {
         isNormalUser = true;
-        # initialPassword = "123456";
+        # initialPassword = "123"; For tests in the VM
         extraGroups = [
           "wheel"
           "networkmanager"
@@ -50,17 +58,11 @@
           proton-pass
           proton-authenticator
           protonmail-desktop
-          vscodium
-          qbittorrent
+          gimp
           logseq
           bruno
-          imv
+          onlyoffice-desktopeditors
         ];
-
-        home.sessionVariables = {
-          EDITOR = "codium";
-          TERMINAL = "kitty";
-        };
 
         programs.git = {
           settings = {
