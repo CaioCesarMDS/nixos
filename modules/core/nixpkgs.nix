@@ -1,5 +1,4 @@
 { inputs, ... }:
-
 let
   nixpkgsConfig = {
     config = {
@@ -13,13 +12,10 @@ let
   };
 in
 {
-  den.aspects.nixpkgs = {
-    nixos = { ... }: {
-      nixpkgs = nixpkgsConfig;
-    };
+  den.aspects.nixpkgs.nixos = { ... }: {
+    nixpkgs = nixpkgsConfig;
 
-    homeManager = { ... }: {
-      nixpkgs = nixpkgsConfig;
-    };
+    home-manager.useGlobalPkgs = true;
+    home-manager.useUserPackages = true;  
   };
 }
