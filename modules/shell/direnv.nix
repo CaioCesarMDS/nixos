@@ -1,0 +1,14 @@
+{ ... }:
+{
+  den.aspects.direnv.homeManager =
+    { pkgs, ... }:
+    {
+      programs.direnv = {
+        enable = true;
+        enableBashIntegration = true;
+        enableFishIntegration = true;
+        enableZshIntegration = true;
+        nix-direnv.enable = true;
+      };
+    };
+}

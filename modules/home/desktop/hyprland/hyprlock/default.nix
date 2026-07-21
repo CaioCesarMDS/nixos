@@ -1,8 +1,0 @@
-{ ... }:
-
-{
-  imports = [
-    ./hyprlock.nix
-    ./scripts
-  ];
-}

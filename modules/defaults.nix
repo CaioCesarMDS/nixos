@@ -1,0 +1,25 @@
+{ den, lib, ... }:
+{
+  den.default.nixos.system.stateVersion = "25.11";
+  den.default.homeManager.home.stateVersion = "25.11";
+
+  den.default.nixos.home-manager.backupFileExtension = "hm-backup";
+  
+  den.schema.user.classes = lib.mkDefault [ "homeManager" ];
+
+  den.default.includes = [
+    den.aspects.boot
+    den.aspects.nix
+    den.aspects.nixpkgs
+    den.aspects.audio
+    den.aspects.security
+    den.aspects.locale
+    den.aspects.time
+    den.aspects.dbus
+    den.aspects.system-defaults
+    den.aspects.networking
+    den.aspects.bluetooth
+    den.aspects.packages
+    den.aspects.fonts
+  ];
+}

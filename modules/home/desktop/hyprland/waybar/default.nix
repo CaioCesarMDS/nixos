@@ -1,8 +1,0 @@
-{ ... }:
-
-{
-  imports = [
-    ./waybar.nix
-    ./scripts
-  ];
-}
