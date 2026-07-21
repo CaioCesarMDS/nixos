@@ -3,6 +3,8 @@
   den.default.nixos.system.stateVersion = "25.11";
   den.default.homeManager.home.stateVersion = "25.11";
 
+  den.default.nixos.home-manager.backupFileExtension = "hm-backup";
+  
   den.schema.user.classes = lib.mkDefault [ "homeManager" ];
 
   den.default.includes = [
