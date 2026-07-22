@@ -1,12 +1,15 @@
-{ inputs, ... }:
+{ inputs, lib, ... }:
 let
   nixpkgsConfig = {
     config = {
-      allowUnfree = true;
+      allowUnfreePredicate =
+        pkg:
+        builtins.elem (lib.getName pkg) [
+          "spotify"
+          "obsidian"
+        ];
+
       nvidia.acceptLicense = true;
-      permittedInsecurePackages = [
-        "electron-39.8.10"
-      ];
     };
     overlays = [ inputs.nix-vscode-extensions.overlays.default ];
   };
@@ -16,6 +19,6 @@ in
     nixpkgs = nixpkgsConfig;
 
     home-manager.useGlobalPkgs = true;
-    home-manager.useUserPackages = true;  
+    home-manager.useUserPackages = true;
   };
 }

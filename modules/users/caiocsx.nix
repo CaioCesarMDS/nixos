@@ -60,7 +60,7 @@
           proton-authenticator
           protonmail-desktop
           gimp
-          logseq
+          obsidian
           bruno
           onlyoffice-desktopeditors
         ];
