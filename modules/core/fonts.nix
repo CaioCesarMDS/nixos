@@ -6,8 +6,7 @@
       fonts = {
         fontDir.enable = true;
         packages = with pkgs; [
-          dejavu_fonts
-          liberation_ttf
+          inter
           nerd-fonts.jetbrains-mono
           noto-fonts
           noto-fonts-color-emoji
@@ -17,8 +16,11 @@
           enable = true;
           defaultFonts = {
             monospace = [ "JetBrainsMono Nerd Font" ];
+            sansSerif = [
+              "Inter"
+              "Noto Sans"
+            ];
             serif = [ "Noto Serif" ];
-            sansSerif = [ "Noto Sans" ];
             emoji = [ "Noto Color Emoji" ];
           };
         };
