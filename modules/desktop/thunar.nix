@@ -21,15 +21,51 @@
         };
 
         environment.systemPackages = with pkgs; [
+          xarchiver
           ffmpegthumbnailer
         ];
       };
 
     homeManager = { ... }: {
       xdg = {
+
+        configFile."Thunar/uca.xml".text = ''
+          <?xml version="1.0" encoding="UTF-8"?>
+          <actions>
+            <action>
+              <icon>utilities-terminal</icon>
+              <name>Open Terminal Here</name>
+              <unique-id>1700000000000</unique-id>
+              <command>sh -c '$TERMINAL --working-directory "$1"' _ %f</command>
+              <description>Open terminal in this folder</description>
+              <patterns>*</patterns>
+              <startup-notify>false</startup-notify>
+              <directories/>
+            </action>
+            <action>
+              <icon>accessories-text-editor</icon>
+              <name>Edit File</name>
+              <unique-id>1700000000001</unique-id>
+              <command>sh -c '$TERMINAL -e $EDITOR "$1"' _ %f</command>
+              <description>Edit file with default editor</description>
+              <patterns>*</patterns>
+              <startup-notify>false</startup-notify>
+              <text-files/>
+            </action>
+          </actions>
+        '';
+
         mimeApps.defaultApplications = {
           "inode/directory" = "thunar.desktop";
           "application/x-directory" = "thunar.desktop";
+
+          "application/zip" = "xarchiver.desktop";
+          "application/x-zip-compressed" = "xarchiver.desktop";
+          "application/x-7z-compressed" = "xarchiver.desktop";
+          "application/x-rar" = "xarchiver.desktop";
+          "application/x-tar" = "xarchiver.desktop";
+          "application/x-gzip" = "xarchiver.desktop";
+          "application/x-bzip2" = "xarchiver.desktop";
         };
 
         dataFile = {

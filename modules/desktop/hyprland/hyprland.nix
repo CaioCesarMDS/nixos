@@ -375,7 +375,6 @@
               };
               float = true;
             }
-
             {
               match = {
                 class = "(?i)^(thunar)$";
@@ -385,7 +384,7 @@
             }
             {
               match = {
-                class = "^(org.gnome.FileRoller)$";
+                class = "^(xarchiver)$";
               };
               float = true;
             }
@@ -407,7 +406,7 @@
               };
               float = true;
             }
-
+            
             {
               match = {
                 title = "^(Open File)(.*)$";
