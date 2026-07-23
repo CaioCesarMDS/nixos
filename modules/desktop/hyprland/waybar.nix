@@ -306,14 +306,12 @@
             "format-disabled" = "󰂲";
             "format-connected-battery" = "󰂯";
             "format-alt" = "{device_alias} 󰂯";
+            "tooltip" = true;
+            "tooltip-format" = "{device_enumerate}";
+            "tooltip-format-enumerate-connected" = "{device_alias}";
+            "tooltip-format-enumerate-connected-battery" = "{device_alias} {device_battery_percentage}%";
             "on-click" = "rfkill toggle bluetooth";
             "on-click-right" = "blueman-manager";
-            "tooltip-format" = "{controller_alias}\t{controller_address}\n\n{num_connections} connected";
-            "tooltip-format-connected" =
-              "{controller_alias}\t{controller_address}\n\n{num_connections} connected\n\n{device_enumerate}";
-            "tooltip-format-enumerate-connected" = "{device_alias}\n{device_address}";
-            "tooltip-format-enumerate-connected-battery" =
-              "{device_alias}\n{device_address}\n{device_battery_percentage}%";
           };
           "network" = {
             "format" = "󰖪";
@@ -416,8 +414,7 @@
 
           #custom-notification,
           #clock,
-          #tray,
-          #mpris {
+          #tray {
             margin: 0.3rem 0 0 0.6rem;
             padding: 0 1rem;
             transition: all 0.3s ease;
@@ -430,9 +427,14 @@
             font-size: 1.2rem;
           }
 
-          #clock,
-          #mpris {
+          #clock {
             font-size: 0.9rem;
+          }
+
+          #tray window decoration {
+            padding: 0.5rem 0.8rem;
+            background-color: alpha(@background, 0.9);
+            border-radius: 8px;
           }
 
           /* Modules Center */
