@@ -219,11 +219,7 @@
 
           config = {
             general = {
-              border_size = 2;
-              col = {
-                active_border = "#8A8A8A";
-                inactive_border = "#383838";
-              };
+              border_size = 0;
               gaps_in = 3;
               gaps_out = 10;
               allow_tearing = true;
@@ -237,14 +233,8 @@
 
             decoration = {
               rounding = 10;
-              active_opacity = 1.0;
+              active_opacity = 1;
               inactive_opacity = 0.8;
-              shadow = {
-                enabled = true;
-                range = 5;
-                render_power = 2;
-                color = "rgba(34, 34, 2, 0.07)";
-              };
               blur = {
                 enabled = true;
                 size = 6;
@@ -377,6 +367,144 @@
                 pin = false;
               };
               no_focus = true;
+            }
+
+            {
+              match = {
+                class = "^(xdg-desktop-portal-gtk)$";
+              };
+              float = true;
+            }
+
+            {
+              match = {
+                class = "(?i)^(thunar)$";
+                title = "^(Rename.*)$";
+              };
+              float = true;
+            }
+            {
+              match = {
+                class = "^(org.gnome.FileRoller)$";
+              };
+              float = true;
+            }
+            {
+              match = {
+                class = "^(org.pulseaudio.pavucontrol)$";
+              };
+              float = true;
+            }
+            {
+              match = {
+                class = "^(blueman-manager)$";
+              };
+              float = true;
+            }
+            {
+              match = {
+                class = "^(nm-connection-editor)$";
+              };
+              float = true;
+            }
+
+            {
+              match = {
+                title = "^(Open File)(.*)$";
+              };
+              float = true;
+            }
+            {
+              match = {
+                title = "^(Select a File)(.*)$";
+              };
+              float = true;
+            }
+            {
+              match = {
+                title = "^(Open Folder)(.*)$";
+              };
+              float = true;
+            }
+            {
+              match = {
+                title = "^(Save As)(.*)$";
+              };
+              float = true;
+            }
+            {
+              match = {
+                title = "^(Library)(.*)$";
+              };
+              float = true;
+            }
+            {
+              match = {
+                title = "^(File Upload)(.*)$";
+              };
+              float = true;
+            }
+            {
+              match = {
+                title = "^(File Operation Progress)$";
+              };
+              float = true;
+            }
+            {
+              match = {
+                title = "^(Confirm to replace files)$";
+              };
+              float = true;
+            }
+            {
+              match = {
+                class = "^(${browser})$";
+                title = ".*accounts.*";
+              };
+              float = true;
+            }
+
+            {
+              match = {
+                class = "^(firefox|google-chrome|zen-beta)$";
+                title = "^(Save As)$";
+              };
+              size = "800 600";
+            }
+            {
+              match = {
+                class = "^(firefox|google-chrome|zen-beta)$";
+                title = "^(Choose Files)$";
+              };
+              size = "800 600";
+            }
+            {
+              match = {
+                class = "^(firefox|google-chrome|zen-beta)$";
+                title = "^(Open File)$";
+              };
+              size = "800 600";
+            }
+            {
+              match = {
+                class = "^(firefox|google-chrome|zen-beta)$";
+                title = "^(Open Folder)$";
+              };
+              size = "800 600";
+            }
+
+            {
+              match = {
+                class = "(firefox|google-chrome|zen-beta)";
+                title = ".*(Picture-in-Picture|Picture in Picture).*";
+              };
+              float = true;
+              pin = true;
+              size = "480 270";
+              no_blur = true;
+              move = "74.5% 4.25%";
+              animation = "slide";
+              opacity = "1.0 1.0 override";
             }
           ];
 
