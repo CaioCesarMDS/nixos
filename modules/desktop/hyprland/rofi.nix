@@ -666,7 +666,7 @@
             case "$action" in
               SHUTDOWN) systemctl poweroff ;;
               REBOOT) systemctl reboot ;;
-              LOGOUT) hyprctl dispatch exit 0 ;;
+              LOGOUT) hyprctl eval 'hl.dispatch(hl.dsp.exit())' ;;
               LOCK) hyprlock ;;
               SUSPEND) systemctl suspend ;;
               HIBERNATE) systemctl hibernate ;;
