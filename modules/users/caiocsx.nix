@@ -27,6 +27,7 @@
       den.aspects.docker
       den.aspects.flatpak
 
+      den.aspects.quickshell
       den.aspects.kitty
       den.aspects.thunar
       den.aspects.vscodium
