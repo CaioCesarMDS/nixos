@@ -101,7 +101,62 @@
         }
       '';
 
-      powermenuTheme = pkgs.writeText "rofi-powermenu.rasi" ''
+      passwordPromptTheme = pkgs.writeText "rofi-password.rasi" ''
+        * {
+          background:        ${colors.background};
+          background-alt:    ${colors.background-alt};
+          foreground:        ${colors.foreground};
+          foreground-muted:  ${colors.foreground-muted};
+          accent-primary:    ${colors.accent-primary};
+          accent-active:     ${colors.accent-active};
+          accent-urgent:     ${colors.accent-urgent};
+
+          font: "JetBrainsMono Nerd Font 10";
+        }
+
+        configuration {
+          show-icons: false;
+        }
+
+        window {
+          width:             26em;
+          transparency:      "real";
+          border-radius:     0.5em;
+          background-color:  @background;
+        }
+
+        mainbox {
+          padding:           1em;
+          background-color:  transparent;
+          children:          [ "inputbar" ];
+        }
+
+        inputbar {
+          padding:           0.5em;
+          border-radius:     0.5em;
+          background-color:  @background-alt;
+          children:          [ "textbox-prompt-colon", "entry" ];
+        }
+
+        textbox-prompt-colon {
+          str:               "󰌾";
+          expand:            false;
+          padding:           0.8em 0.5em;
+          background-color:  transparent;
+          text-color:        @foreground;
+        }
+
+        entry {
+          expand:            true;
+          padding:           0.8em;
+          background-color:  transparent;
+          text-color:        @foreground;
+          placeholder:       "Password";
+          placeholder-color: @foreground-muted;
+        }
+      '';
+
+      powerMenuTheme = pkgs.writeText "rofi-power-menu.rasi" ''
         * {
           background: ${colors.background};
           background-alt: ${colors.background-alt};
@@ -344,7 +399,7 @@
         }
       '';
 
-      clipboardManagerTheme = pkgs.writeText "rofi-clipboard-manager.rasi" ''
+      listMenuTheme = pkgs.writeText "rofi-list-menu.rasi" ''
         * {
           background: ${colors.background};
           background-alt: ${colors.background-alt};
@@ -596,7 +651,7 @@
       #                     SCRIPTS
       # ===================================================
       rofiPowermenu = pkgs.writeShellApplication {
-        name = "rofi-powermenu";
+        name = "rofi-power-menu";
         runtimeInputs = with pkgs; [
           rofi
           util-linux
@@ -605,22 +660,6 @@
           gawk
         ];
         text = ''
-          get_system_info() {
-            hostname_str=$(hostname)
-            current_user=$(whoami)
-
-            UPTIME=$(uptime -p 2>/dev/null | sed 's/^up //' || true)
-            if [ -z "$UPTIME" ]; then
-              UPTIME=$(uptime | awk -F'up ' '{print $2}' | cut -d',' -f1 | xargs || echo "unknown")
-            fi
-
-            LAST_LOGIN=$(last -n 1 "$current_user" 2>/dev/null | grep -v "wtmp" | head -n 1 | awk '{print $4, $5, $6}' | xargs || true)
-
-            if [ -z "$LAST_LOGIN" ]; then
-              LAST_LOGIN=$(who -b | awk '{print $3, $4, $5}' | xargs || echo "Unknown")
-            fi
-          }
-
           set_icons() {
             declare -gA ACTIONS=(
               [""]="SHUTDOWN"
@@ -642,13 +681,29 @@
                 -theme "${confirmTheme}"
           }
 
+          get_system_info() {
+            hostname_str=$(hostname)
+            current_user=$(whoami)
+
+            UPTIME=$(uptime -p 2>/dev/null | sed 's/^up //' || true)
+            if [ -z "$UPTIME" ]; then
+              UPTIME=$(uptime | awk -F'up ' '{print $2}' | cut -d',' -f1 | xargs || echo "unknown")
+            fi
+
+            LAST_LOGIN=$(last -n 1 "$current_user" 2>/dev/null | grep -v "wtmp" | head -n 1 | awk '{print $4, $5, $6}' | xargs || true)
+
+            if [ -z "$LAST_LOGIN" ]; then
+              LAST_LOGIN=$(who -b | awk '{print $3, $4, $5}' | xargs || echo "Unknown")
+            fi
+          }
+
           show_menu() {
             local menu_items
             menu_items="$(printf "%s\n" "''${ORDERED_ICONS[@]}")"
 
             rofi -dmenu -p " $current_user@$hostname_str" \
               -mesg " Last Login: $LAST_LOGIN |  Uptime: $UPTIME" \
-              -theme "${powermenuTheme}" <<<"$menu_items"
+              -theme "${powerMenuTheme}" <<<"$menu_items"
           }
 
           execute_action() {
@@ -686,6 +741,350 @@
         '';
       };
 
+      rofiNetworkManager = pkgs.writeShellApplication {
+        name = "rofi-network-manager";
+        runtimeInputs = with pkgs; [
+          rofi
+          networkmanager
+          libnotify
+          gnugrep
+          gawk
+          coreutils
+          gnused
+        ];
+        text = ''
+          set_constants() {
+            readonly LOG_FILE="/tmp/rofi-network-manager.log"
+          }
+
+          set_icons() {
+            readonly ICON_WIFI=" "
+            readonly ICON_ETH="󰈀 "
+            readonly ICON_SAVED=" "
+            readonly ICON_ACTIVE="󱘖 "
+            readonly ICON_VPN="󰖂 "
+            readonly ICON_BT="󰂯 "
+            readonly ICON_TOGGLE="󰐌 "
+            readonly ICON_DELETE="󰆴 "
+            readonly ICON_EDITOR="󰒓 "
+
+            readonly ICON_YES=" "
+            readonly ICON_NO="󰅙 "
+            readonly ICON_BACK="󰌍 "
+          }
+
+          show_password_prompt() {
+            rofi -dmenu -password -theme "${passwordPromptTheme}" -p "$1"
+          }
+
+          show_menu() {
+            rofi -dmenu -theme "${listMenuTheme}" -p "$1"
+          }
+
+          notify_info() {
+            notify-send "Network Manager" "$1" -t "''${2:-3000}"
+          }
+
+          execute_and_notify() {
+            local ok_msg="$1"
+            local err_msg="$2"
+            shift 2
+
+            {
+              printf '\n[%s] Running:' "$(date '+%F %T')"
+              printf ' %q' "$@"
+              printf '\n'
+            } >>"$LOG_FILE"
+
+            if "$@" >>"$LOG_FILE" 2>&1; then
+              notify_info "$ok_msg"
+            else
+              notify_info "$err_msg"
+            fi
+          }
+
+          confirm_action() {
+            local confirmed
+            confirmed=$(printf "%s\n%s\n" "$ICON_YES" "$ICON_NO" | \
+              rofi -dmenu -p "Confirmation" \
+                -mesg "Are you sure?" \
+                -theme "${confirmTheme}")
+
+            [[ "''${confirmed// /}" == "''${ICON_YES// /}" ]]
+          }
+
+          connect_saved() {
+            local name="$1"
+            notify_info "Connecting to $name..." 2000
+            execute_and_notify "Successfully connected to $name" "Failed to connect to $name" nmcli connection up id "$name"
+          }
+
+          show_available_wifi() {
+            notify_info "Scanning for Wi-Fi networks..." 2000
+            nmcli device wifi rescan >/dev/null 2>&1 || true
+
+            local raw_list
+            raw_list=$(nmcli -t -f SSID,SECURITY,SIGNAL device wifi list | awk -F':' '
+              $1 != "" {
+                printf "%-25s | Signal: %3s%% | %s\n", $1, $3, $2
+              }
+            ' | sort -u)
+
+            if [ -z "$raw_list" ]; then
+              notify_info "No Wi-Fi networks found in range."
+              wifi_menu
+              return
+            fi
+
+            local back_opt="''${ICON_BACK} Back"
+            local choice
+            choice=$(echo -e "$back_opt\n$raw_list" | show_menu "Available Wi-Fi")
+
+            [ -z "$choice" ] && return
+            [[ "$choice" == "$back_opt" ]] && { wifi_menu; return; }
+
+            local ssid
+            ssid=$(echo "$choice" | awk -F' \\| ' '{print $1}' | sed 's/ *$//')
+            [ -z "$ssid" ] && return
+
+            if nmcli -t -f NAME connection show | grep -Fxq "$ssid"; then
+              connect_saved "$ssid"
+            else
+              local password
+              if ! password=$(show_password_prompt "Password for $ssid (Leave blank if open)"); then
+                return
+              fi
+              notify_info "Connecting to $ssid..."
+              if [ -z "$password" ]; then
+                execute_and_notify "Connected to $ssid" "Failed to connect to $ssid" nmcli device wifi connect "$ssid"
+              else
+                execute_and_notify "Connected to $ssid" "Failed to connect to $ssid (Wrong password?)" nmcli device wifi connect "$ssid" password "$password"
+              fi
+            fi
+          }
+
+          show_saved_wifi() {
+            local saved_list
+            saved_list=$(nmcli -t -f NAME,TYPE connection show | awk -F':' '$2 ~ /^(802-11-wireless|802-3-ethernet)$/ {print $1}')
+
+            if [ -z "$saved_list" ]; then
+              notify_info "No saved Wi-Fi or Ethernet connections found."
+              wifi_menu
+              return
+            fi
+
+            local back_opt="''${ICON_BACK} Back"
+            local choice
+            choice=$(echo -e "$back_opt\n$saved_list" | show_menu "Saved Connections")
+
+            [ -z "$choice" ] && return
+            [[ "$choice" == "$back_opt" ]] && { wifi_menu; return; }
+
+            connect_saved "$choice"
+          }
+
+          wifi_menu() {
+            local options=(
+              "''${ICON_WIFI} Available Wi-Fi"
+              "''${ICON_SAVED} Saved Networks"
+              "''${ICON_BACK} Back"
+            )
+
+            local choice
+            choice=$(printf "%s\n" "''${options[@]}" | show_menu "Wi-Fi Menu")
+
+            case "$choice" in
+              "''${ICON_WIFI}"*) show_available_wifi ;;
+              "''${ICON_SAVED}"*) show_saved_wifi ;;
+              "''${ICON_BACK}"*) main_menu ;;
+            esac
+          }
+
+          show_vpn() {
+            local vpn_list
+            vpn_list=$(nmcli -t -f NAME,TYPE connection show | awk -F':' '$2 ~ /^(vpn|wireguard)$/ {print $1}')
+
+            if [ -z "$vpn_list" ]; then
+              notify_info "No VPN or WireGuard connections configured."
+              main_menu
+              return
+            fi
+
+            local back_opt="''${ICON_BACK} Back"
+            local choice
+            choice=$(echo -e "$back_opt\n$vpn_list" | show_menu "VPN / WireGuard")
+
+            [ -z "$choice" ] && return
+            [[ "$choice" == "$back_opt" ]] && { main_menu; return; }
+
+            connect_saved "$choice"
+          }
+
+          show_bluetooth() {
+            local bt_list
+            bt_list=$(nmcli -t -f NAME,TYPE connection show | awk -F':' '$2=="bluetooth" {print $1}')
+
+            if [ -z "$bt_list" ]; then
+              notify_info "No paired Bluetooth network connections found."
+              main_menu
+              return
+            fi
+
+            local back_opt="''${ICON_BACK} Back"
+            local choice
+            choice=$(echo -e "$back_opt\n$bt_list" | show_menu "Bluetooth")
+
+            [ -z "$choice" ] && return
+            [[ "$choice" == "$back_opt" ]] && { main_menu; return; }
+
+            connect_saved "$choice"
+          }
+
+          show_active() {
+            local active_list
+            active_list=$(nmcli -t -f NAME,DEVICE connection show --active | grep -v "^lo:" | awk -F':' '{print $1 " (" $2 ")"}')
+
+            if [ -z "$active_list" ]; then
+              notify_info "No active connections to disconnect."
+              main_menu
+              return
+            fi
+
+            local back_opt="''${ICON_BACK} Back"
+            local choice
+            choice=$(echo -e "$back_opt\n$active_list" | show_menu "Active Connections (Disconnect)")
+
+            [ -z "$choice" ] && return
+            [[ "$choice" == "$back_opt" ]] && { main_menu; return; }
+
+            local name
+            name=$(printf '%s\n' "$choice" | sed 's/ (.*)//')
+
+            if confirm_action; then
+              nmcli connection down id "$name" >>"$LOG_FILE" 2>&1
+              notify_info "Disconnected from $name"
+            fi
+          }
+
+          toggle_menu() {
+            local wifi_state net_state bt_state
+            wifi_state=$(nmcli radio wifi)
+            net_state=$(nmcli networking)
+            bt_state=$(rfkill list bluetooth | grep -q "Soft blocked: yes" && echo "disabled" || echo "enabled")
+
+            local options=(
+              "''${ICON_WIFI} Wi-Fi: $wifi_state"
+              "''${ICON_BT} Bluetooth: $bt_state"
+              "''${ICON_ETH} Networking: $net_state"
+              "''${ICON_BACK} Back"
+            )
+
+            local choice
+            choice=$(printf "%s\n" "''${options[@]}" | show_menu "Toggle Radios")
+
+            case "$choice" in
+              "Wi-Fi:"*)
+                if [ "$wifi_state" = "enabled" ]; then
+                  execute_and_notify "Wi-Fi disabled" "Failed to disable Wi-Fi" \
+                    nmcli radio wifi off
+                else
+                  execute_and_notify "Wi-Fi enabled" "Failed to enable Wi-Fi" \
+                    nmcli radio wifi on
+                fi
+                ;;
+              "Bluetooth:"*)
+                if [ "$bt_state" = "enabled" ]; then
+                  execute_and_notify "Bluetooth disabled" "Failed to disable Bluetooth" \
+                    rfkill block bluetooth
+                else
+                  execute_and_notify "Bluetooth enabled" "Failed to enable Bluetooth" \
+                    rfkill unblock bluetooth
+                fi
+                ;;
+              "Networking:"*)
+                if [ "$net_state" = "enabled" ]; then
+                  execute_and_notify "Networking disabled" "Failed to disable Networking" \
+                    nmcli networking off
+                else
+                  execute_and_notify "Networking enabled" "Failed to enable Networking" \
+                    nmcli networking on
+                fi
+                ;;
+              "''${ICON_BACK}"*)
+                main_menu
+                ;;
+            esac
+          }
+
+          delete_connection() {
+            local target_list
+            target_list=$(nmcli -t -f NAME connection show)
+
+            if [ -z "$target_list" ]; then
+              notify_info "No connections found to delete."
+              main_menu
+              return
+            fi
+
+            local back_opt="''${ICON_BACK} Back"
+            local target
+            target=$(echo -e "$back_opt\n$target_list" | show_menu "Delete Connection")
+
+            [ -z "$target" ] && return
+            [[ "$target" == "$back_opt" ]] && { main_menu; return; }
+
+            if confirm_action; then
+              execute_and_notify "Connection '$target' deleted" "Failed to delete '$target'" nmcli connection delete id "$target"
+            fi
+          }
+
+          launch_editor() {
+            notify_info "Opening Advanced GUI Editor..."
+            nm-connection-editor >/dev/null 2>&1 &
+            disown
+          }
+
+          main_menu() {
+            local options=(
+              "''${ICON_WIFI} Wi-Fi Menu"
+              "''${ICON_VPN} VPN / WireGuard"
+              "''${ICON_BT} Bluetooth"
+              "''${ICON_ACTIVE} Active Connections (Disconnect)"
+              "''${ICON_TOGGLE} Toggle Radios"
+              "''${ICON_DELETE} Delete Connection"
+              "''${ICON_EDITOR} Advanced GUI Editor"
+            )
+
+            local choice
+            choice=$(printf "%s\n" "''${options[@]}" | show_menu "Network")
+
+            case "$choice" in
+              "''${ICON_WIFI}"*) wifi_menu ;;
+              "''${ICON_VPN}"*) show_vpn ;;
+              "''${ICON_BT}"*) show_bluetooth ;;
+              "''${ICON_ACTIVE}"*) show_active ;;
+              "''${ICON_TOGGLE}"*) toggle_menu ;;
+              "''${ICON_DELETE}"*) delete_connection ;;
+              "''${ICON_EDITOR}"*) launch_editor ;;
+            esac
+          }
+
+          main() {
+            set_constants
+            set_icons
+
+            case "''${1-}" in
+              "")            main_menu ;;
+              -w|--wifi)     wifi_menu ;;
+              -h|--help)     echo "Usage: ''${0##*/} [ -w/--wifi | -h/--help]";;
+              *)             echo "Unknown option: $1" >&2; exit 1 ;;
+            esac
+          }
+
+          main "$@"
+        '';
+      };
+
       rofiLauncher = pkgs.writeShellApplication {
         name = "rofi-launcher";
         runtimeInputs = with pkgs; [
@@ -709,69 +1108,39 @@
           libnotify
         ];
         text = ''
-          readonly FAVORITES_FILE="${config.xdg.cacheHome}/clipboard/clipboard_favorites"
-          ICON_YES=''
-          ICON_NO='󰅙'
-
-          DEL_MODE=false
-
-          run_rofi() {
-            rofi -dmenu -theme "${clipboardManagerTheme}"
+          set_constants() {
+            readonly FAVORITES_FILE="${config.xdg.cacheHome}/clipboard/clipboard_favorites"
           }
 
-          process_selections() {
-            if $DEL_MODE; then
-              while IFS= read -r line; do
-                [ -n "$line" ] && cliphist delete <<<"$line"
-              done
-            else
-              while IFS= read -r line; do
-                [ -n "$line" ] && echo -e "$line\t" | cliphist decode
-              done | wl-copy
-            fi
+          set_icons() {
+            readonly ICON_HISTORY=" "
+            readonly ICON_DEL="󰆴 "
+            readonly ICON_FAV="󰓎 "
+            readonly ICON_MANAGE="󰒓 "
+            readonly ICON_CLEAR="󰃢 "
+            readonly ICON_ADD="󰐕 "
+
+            readonly ICON_YES=" "
+            readonly ICON_NO="󰅙 "
+            readonly ICON_BACK="󰌍 "
           }
 
-          show_history() {
-            mapfile -t items < <(cliphist list | sed '/^\s*$/d')
-            [ ''${#items[@]} -eq 0 ] && return
+          show_menu() {
+            rofi -dmenu -theme "${listMenuTheme}" -p "$1"
+          }
 
-            local list=()
-            for i in "''${!items[@]}"; do
-              list+=("$((i + 1)). ''${items[i]}")
-            done
-
-            selection=$(printf '%s\n' "''${list[@]}" | run_rofi) || return
-
-            while IFS= read -r sel; do
-              idx=$(awk -F'.' '{print $1}' <<<"$sel")
-              if [[ "$idx" =~ ^[0-9]+$ ]] && [ "$idx" -ge 1 ] && [ "$idx" -le ''${#items[@]} ]; then
-                echo "''${items[$((idx - 1))]}"
-              fi
-            done <<<"$selection" | process_selections
+          notify_info() {
+            notify-send "Clipboard Manager" "$1" -t "''${2:-3000}"
           }
 
           confirm_action() {
-            printf "%s\n%s\n" "$ICON_YES" "$ICON_NO" | \
+            local confirmed
+            confirmed=$(printf "%s\n%s\n" "$ICON_YES" "$ICON_NO" | \
               rofi -dmenu -p "Confirmation" \
                 -mesg "Are you sure?" \
-                -theme "${confirmTheme}"
-          }
+                -theme "${confirmTheme}")
 
-          ensure_confirmation() {
-            local confirmed
-            confirmed="$(confirm_action)"
-            [[ "''${confirmed// /}" != "''${ICON_YES// /}" ]] && return 1
-            return 0
-          }
-
-          delete_items() {
-            DEL_MODE=true
-            show_history
-          }
-
-          clear_history() {
-            ensure_confirmation || return
-            cliphist wipe
+            [[ "''${confirmed// /}" == "''${ICON_YES// /}" ]]
           }
 
           fav_decode_array() {
@@ -783,120 +1152,262 @@
             done <"$FAVORITES_FILE"
           }
 
-          pick_from_list() {
-            local list=("$@")
-            printf '%s\n' "''${list[@]}" | run_rofi
-          }
-
-          add_to_favorites() {
-            mkdir -p "$(dirname "$FAVORITES_FILE")"
-
+          menu_history() {
+            local items
             mapfile -t items < <(cliphist list | sed '/^\s*$/d')
-            [ ''${#items[@]} -eq 0 ] && {
-              notify-send "Clipboard" "No items to favorite."
-              return
-            }
 
-            selection=$(pick_from_list "''${items[@]}") || return
-
-            id=$(cut -f1 <<<"$selection")
-
-            decoded=$(printf '%s\t' "$id" | cliphist decode) || {
-              notify-send "Clipboard" "Failed to decode cliphist id: $id"
-              return
-            }
-
-            if [ -z "$decoded" ]; then
-              notify-send "Clipboard" "Decoded content empty for id: $id"
+            if [ ''${#items[@]} -eq 0 ]; then
+              notify_info "Clipboard history is empty."
+              main_menu
               return
             fi
 
-            encoded=$(printf "%s" "$decoded" | base64 -w0)
-            if ! grep -Fxq "$encoded" "$FAVORITES_FILE" 2>/dev/null; then
-              printf '%s\n' "$encoded" >>"$FAVORITES_FILE"
-              notify-send "Clipboard" "Added to favorites"
-            else
-              notify-send "Clipboard" "Already a favorite"
-            fi
+            local back_opt="''${ICON_BACK} Back"
+            local list=("$back_opt")
+            for i in "''${!items[@]}"; do
+              list+=("$((i + 1)). ''${items[i]}")
+            done
+
+            local selection
+            selection=$(printf '%s\n' "''${list[@]}" | show_menu "Copy History")
+
+            [ -z "$selection" ] && return
+            [[ "$selection" == "$back_opt" ]] && { main_menu; return; }
+
+            while IFS= read -r sel; do
+              local idx
+              idx=$(awk -F'.' '{print $1}' <<<"$sel")
+              if [[ "$idx" =~ ^[0-9]+$ ]] && [ "$idx" -ge 1 ] && [ "$idx" -le ''${#items[@]} ]; then
+                echo -e "''${items[$((idx - 1))]}\t" | cliphist decode
+              fi
+            done <<<"$selection" | wl-copy
+
+            notify_info "Copied to clipboard."
           }
 
-          view_favorites() {
-            [ -s "$FAVORITES_FILE" ] || {
-              notify-send "Clipboard" "No favorites."
-              return
-            }
+          menu_delete_items() {
+            local items
+            mapfile -t items < <(cliphist list | sed '/^\s*$/d')
 
+            if [ ''${#items[@]} -eq 0 ]; then
+              notify_info "Clipboard history is empty."
+              main_menu
+              return
+            fi
+
+            local back_opt="''${ICON_BACK} Back"
+            local list=("$back_opt")
+            for i in "''${!items[@]}"; do
+              list+=("$((i + 1)). ''${items[i]}")
+            done
+
+            local selection
+            selection=$(printf '%s\n' "''${list[@]}" | show_menu "Delete Items")
+
+            [ -z "$selection" ] && return
+            [[ "$selection" == "$back_opt" ]] && { main_menu; return; }
+
+            while IFS= read -r sel; do
+              local idx
+              idx=$(awk -F'.' '{print $1}' <<<"$sel")
+              if [[ "$idx" =~ ^[0-9]+$ ]] && [ "$idx" -ge 1 ] && [ "$idx" -le ''${#items[@]} ]; then
+                cliphist delete <<<"''${items[$((idx - 1))]}"
+              fi
+            done <<<"$selection"
+
+            notify_info "Item(s) deleted."
+            menu_delete_items
+          }
+
+          menu_clear_history() {
+            if confirm_action; then
+              cliphist wipe
+              notify_info "Clipboard history cleared."
+            fi
+            main_menu
+          }
+
+          menu_view_favorites() {
+            if [ ! -s "$FAVORITES_FILE" ]; then
+              notify_info "No favorites saved."
+              main_menu
+              return
+            fi
+
+            local favs decoded
             mapfile -t favs <"$FAVORITES_FILE"
             fav_decode_array decoded
 
-            local list=()
+            local back_opt="''${ICON_BACK} Back"
+            local list=("$back_opt")
             for i in "''${!decoded[@]}"; do
               list+=("$((i + 1)). ''${decoded[i]}")
             done
 
-            selection=$(printf '%s\n' "''${list[@]}" | run_rofi) || return
+            local selection
+            selection=$(printf '%s\n' "''${list[@]}" | show_menu "Favorites")
 
+            [ -z "$selection" ] && return
+            [[ "$selection" == "$back_opt" ]] && { main_menu; return; }
+
+            local idx
             idx=$(awk -F'.' '{print $1}' <<<"$selection")
 
             if [[ "$idx" =~ ^[0-9]+$ ]] && [ "$idx" -ge 1 ] && [ "$idx" -le ''${#favs[@]} ]; then
               echo "''${favs[$((idx - 1))]}" | base64 --decode | wl-copy
-              notify-send "Clipboard" "#$idx copied to clipboard"
+              notify_info "Favorite #$idx copied to clipboard."
             else
-              notify-send "Clipboard" "Invalid selection"
+              notify_info "Invalid selection."
             fi
           }
 
-          delete_from_favorites() {
-            [ -s "$FAVORITES_FILE" ] || {
-              notify-send "Clipboard" "No favorites."
-              return
-            }
+          menu_add_favorite() {
+            mkdir -p "$(dirname "$FAVORITES_FILE")"
 
+            local items
+            mapfile -t items < <(cliphist list | sed '/^\s*$/d')
+
+            if [ ''${#items[@]} -eq 0 ]; then
+              notify_info "No history items to favorite."
+              manage_favorites_menu
+              return
+            fi
+
+            local back_opt="''${ICON_BACK} Back"
+            local list=("$back_opt" "''${items[@]}")
+
+            local selection
+            selection=$(printf '%s\n' "''${list[@]}" | show_menu "Add to Favorites")
+
+            [ -z "$selection" ] && return
+            [[ "$selection" == "$back_opt" ]] && { manage_favorites_menu; return; }
+
+            local id
+            id=$(cut -f1 <<<"$selection")
+
+            local decoded
+            if ! decoded=$(printf '%s\t' "$id" | cliphist decode); then
+              notify_info "Failed to decode history item."
+              manage_favorites_menu
+              return
+            fi
+
+            if [ -z "$decoded" ]; then
+              notify_info "Decoded content is empty."
+              manage_favorites_menu
+              return
+            fi
+
+            local encoded
+            encoded=$(printf "%s" "$decoded" | base64 -w0)
+
+            if ! grep -Fxq "$encoded" "$FAVORITES_FILE" 2>/dev/null; then
+              printf '%s\n' "$encoded" >>"$FAVORITES_FILE"
+              notify_info "Added to favorites."
+            else
+              notify_info "Item is already a favorite."
+            fi
+
+            manage_favorites_menu
+          }
+
+          menu_delete_favorite() {
+            if [ ! -s "$FAVORITES_FILE" ]; then
+              notify_info "No favorites to delete."
+              manage_favorites_menu
+              return
+            fi
+
+            local favs decoded
             mapfile -t favs <"$FAVORITES_FILE"
             fav_decode_array decoded
 
-            local list=()
+            local back_opt="''${ICON_BACK} Back"
+            local list=("$back_opt")
             for i in "''${!decoded[@]}"; do
               list+=("$((i + 1)). ''${decoded[i]}")
             done
 
-            selection=$(printf '%s\n' "''${list[@]}" | run_rofi) || return
+            local selection
+            selection=$(printf '%s\n' "''${list[@]}" | show_menu "Delete Favorite")
+
+            [ -z "$selection" ] && return
+            [[ "$selection" == "$back_opt" ]] && { manage_favorites_menu; return; }
+
+            local idx
             idx=$(awk -F'.' '{print $1}' <<<"$selection")
 
             if [[ "$idx" =~ ^[0-9]+$ ]] && [ "$idx" -ge 1 ] && [ "$idx" -le ''${#favs[@]} ]; then
               sed -i "''${idx}d" "$FAVORITES_FILE"
-              notify-send "Clipboard" "Removed #$idx from favorites"
+              notify_info "Removed favorite #$idx."
             else
-              notify-send "Clipboard" "Invalid selection"
+              notify_info "Invalid selection."
             fi
+
+            manage_favorites_menu
           }
 
-          clear_favorites() {
-            ensure_confirmation || return
-            : >"$FAVORITES_FILE"
+          menu_clear_favorites() {
+            if confirm_action; then
+              : >"$FAVORITES_FILE"
+              notify_info "Favorites cleared."
+            fi
+            manage_favorites_menu
           }
 
-          manage_favorites() {
-            local manage
-            manage=$(printf '%s\n' "Add" "Delete" "Clear" | run_rofi) || return
-            case "$manage" in
-            Add) add_to_favorites ;;
-            Delete) delete_from_favorites ;;
-            Clear) clear_favorites ;;
+          manage_favorites_menu() {
+            local options=(
+              "''${ICON_ADD} Add from History"
+              "''${ICON_DEL} Delete Favorite"
+              "''${ICON_CLEAR} Clear Favorites"
+              "''${ICON_BACK} Back"
+            )
+
+            local choice
+            choice=$(printf "%s\n" "''${options[@]}" | show_menu "Manage Favorites")
+
+            case "$choice" in
+              "''${ICON_ADD}"*) menu_add_favorite ;;
+              "''${ICON_DEL}"*) menu_delete_favorite ;;
+              "''${ICON_CLEAR}"*) menu_clear_favorites ;;
+              "''${ICON_BACK}"*) main_menu ;;
+            esac
+          }
+
+          main_menu() {
+            local options=(
+              "''${ICON_HISTORY} Clipboard History"
+              "''${ICON_FAV} View Favorites"
+              "''${ICON_MANAGE} Manage Favorites"
+              "''${ICON_DEL} Delete Items"
+              "''${ICON_CLEAR} Clear History"
+            )
+
+            local choice
+            choice=$(printf "%s\n" "''${options[@]}" | show_menu "Clipboard")
+
+            case "$choice" in
+              "''${ICON_HISTORY}"*) menu_history ;;
+              "''${ICON_FAV}"*) menu_view_favorites ;;
+              "''${ICON_MANAGE}"*) manage_favorites_menu ;;
+              "''${ICON_DEL}"*) menu_delete_items ;;
+              "''${ICON_CLEAR}"*) menu_clear_history ;;
             esac
           }
 
           main() {
-            local action="''${1:-}"
-            [ -z "$action" ] && action=$(printf '%s\n' "History" "Delete" "View Favorites" "Manage Favorites" "Clear History" | run_rofi)
+            set_constants
+            set_icons
 
-            case "$action" in
-            -c | --copy | "History") show_history ;;
-            "Delete") delete_items ;;
-            -f | --favorites | "View Favorites") view_favorites ;;
-            "Manage Favorites") manage_favorites ;;
-            -w | --wipe | "Clear History") clear_history ;;
-            -h | --help | *) echo "Usage: $0 [ --copy | --favorites | --wipe | --help ]" ;;
+            case "''${1:-}" in
+              "")            main_menu ;;
+              -H|--history)  menu_history ;;
+              -f|--favorites) menu_view_favorites ;;
+              -m|--manage)   manage_favorites_menu ;;
+              -d|--delete)   menu_delete_items ;;
+              -w|--wipe)     menu_clear_history ;;
+              -h|--help)     echo "Usage: ''${0##*/} [ -H/--history | -f/--favorites | -m/--manage | -d/--delete | -w/--wipe | -h/--help ]" ;;
+              *)             echo "Unknown option: $1" >&2; exit 1 ;;
             esac
           }
 
@@ -916,14 +1427,30 @@
           gawk
         ];
         text = ''
-          readonly WALLPAPERS_DIR="${config.home.homeDirectory}/Pictures/Wallpapers"
-          readonly CACHE_DIR="${config.xdg.cacheHome}"
-          readonly WALLPAPERS_CACHE_DIR="$CACHE_DIR/wallpaper"
-          readonly THUMB_DIR="$WALLPAPERS_CACHE_DIR/thumbs"
-          readonly CURRENT_WALLPAPER="$WALLPAPERS_CACHE_DIR/current"
-          readonly LOCKSCREEN_WALLPAPER="$WALLPAPERS_CACHE_DIR/lockscreen"
+          set_constants() {
+            readonly WALLPAPERS_DIR="${config.home.homeDirectory}/Pictures/Wallpapers"
+            readonly CACHE_DIR="${config.xdg.cacheHome}"
+            readonly WALLPAPERS_CACHE_DIR="$CACHE_DIR/wallpaper"
+            readonly THUMB_DIR="$WALLPAPERS_CACHE_DIR/thumbs"
+            readonly CURRENT_WALLPAPER="$WALLPAPERS_CACHE_DIR/current"
+            readonly LOCKSCREEN_WALLPAPER="$WALLPAPERS_CACHE_DIR/lockscreen"
+          }
 
-          mkdir -p "$WALLPAPERS_CACHE_DIR" "$THUMB_DIR"
+          setup() {
+            mkdir -p "$WALLPAPERS_CACHE_DIR" "$THUMB_DIR"
+          }
+
+          notify_info() {
+            local msg="$1"
+            local sub_msg="''${2:-}"
+            local icon="''${3:-}"
+
+            if [ -n "$icon" ] && [ -f "$icon" ]; then
+              notify-send -a "Wallpaper Manager" -i "$icon" -u low "$msg" "$sub_msg"
+            else
+              notify-send "Wallpaper Manager" "$msg" -t 3000
+            fi
+          }
 
           ensure_symlink() {
             local target="$1" link="$2"
@@ -931,24 +1458,24 @@
             ln -sfn "$target" "$link"
           }
 
-          mapfile -d "" -t WALLPAPER_LIST < <(
-            find "$WALLPAPERS_DIR" -type f \
-              \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" -o -iname "*.gif" \) \
-              -print0 | sort -z
-          )
+          init_wallpapers() {
+            mapfile -d "" -t WALLPAPER_LIST < <(
+              find -L "$WALLPAPERS_DIR" -type f \
+                \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" -o -iname "*.gif" \) \
+                -print0 | sort -z
+            )
 
-          if [ "''${#WALLPAPER_LIST[@]}" -eq 0 ]; then
-            echo "No wallpapers found in directory: $WALLPAPERS_DIR" >&2
-            exit 1
-          fi
+            if [ "''${#WALLPAPER_LIST[@]}" -eq 0 ]; then
+              notify_info "No wallpapers found" "Directory: $WALLPAPERS_DIR"
+              exit 1
+            fi
+          }
 
           get_thumbnail_key() {
             local wallpaper_path="$1"
             local wallpaper_mtime wallpaper_size
-
             wallpaper_mtime=$(stat -c '%Y' -- "$wallpaper_path")
             wallpaper_size=$(stat -c '%s' -- "$wallpaper_path")
-
             printf '%s|%s|%s' "$wallpaper_path" "$wallpaper_mtime" "$wallpaper_size" | sha256sum | awk '{print $1}'
           }
 
@@ -961,24 +1488,15 @@
 
           ensure_thumbnail() {
             local source_path="$1" thumbnail_path="$2"
-
             [ -s "$thumbnail_path" ] && return 0
 
-            case "$source_path" in
-              *.gif|*.GIF)
-                magick "''${source_path}[0]" -auto-orient -thumbnail "512x512^" -gravity center -extent "512x512" -strip "$thumbnail_path" 2>/dev/null || {
-                  rm -f "$thumbnail_path"
-                  return 1
-                }
-                ;;
-              *)
-                magick "$source_path" -auto-orient -thumbnail "512x512^" -gravity center -extent "512x512" -strip "$thumbnail_path" 2>/dev/null || {
-                  rm -f "$thumbnail_path"
-                  return 1
-                }
-                ;;
-            esac
+            local target="''${source_path}"
+            [[ "$source_path" =~ \.(gif|GIF)$ ]] && target="''${source_path}[0]"
 
+            magick "$target" -auto-orient -thumbnail "512x512^" -gravity center -extent "512x512" -strip "$thumbnail_path" 2>/dev/null || {
+              rm -f "$thumbnail_path"
+              return 1
+            }
             return 0
           }
 
@@ -990,9 +1508,7 @@
               thumbnail_path=$(get_thumbnail_path "$wallpaper_path")
               [ -s "$thumbnail_path" ] && continue
 
-              (
-                ensure_thumbnail "$wallpaper_path" "$thumbnail_path" >/dev/null 2>&1 || true
-              ) &
+              ( ensure_thumbnail "$wallpaper_path" "$thumbnail_path" >/dev/null 2>&1 || true ) &
 
               active_jobs=$((active_jobs + 1))
               if [ "$active_jobs" -ge "$max_jobs" ]; then
@@ -1006,26 +1522,22 @@
             local wallpaper_path="$1"
             local lockscreen_source
 
-            case "$wallpaper_path" in
-              *.gif|*.GIF)
-                local wallpaper_key lockscreen_file
-                wallpaper_key=$(get_thumbnail_key "$wallpaper_path")
-                lockscreen_file="$WALLPAPERS_CACHE_DIR/lockscreen-$wallpaper_key.png"
+            if [[ "$wallpaper_path" =~ \.(gif|GIF)$ ]]; then
+              local wallpaper_key lockscreen_file
+              wallpaper_key=$(get_thumbnail_key "$wallpaper_path")
+              lockscreen_file="$WALLPAPERS_CACHE_DIR/lockscreen-$wallpaper_key.png"
 
-                if [ ! -s "$lockscreen_file" ]; then
-                  magick "''${wallpaper_path}[0]" -auto-orient -strip "$lockscreen_file" 2>/dev/null || {
-                    rm -f "$lockscreen_file"
-                    echo "Failed to generate lockscreen wallpaper from GIF: $wallpaper_path" >&2
-                    return 1
-                  }
-                fi
-
-                lockscreen_source="$lockscreen_file"
-                ;;
-              *)
-                lockscreen_source="$wallpaper_path"
-                ;;
-            esac
+              if [ ! -s "$lockscreen_file" ]; then
+                magick "''${wallpaper_path}[0]" -auto-orient -strip "$lockscreen_file" 2>/dev/null || {
+                  rm -f "$lockscreen_file"
+                  echo "Failed to generate lockscreen wallpaper from GIF: $wallpaper_path" >&2
+                  return 1
+                }
+              fi
+              lockscreen_source="$lockscreen_file"
+            else
+              lockscreen_source="$wallpaper_path"
+            fi
 
             ensure_symlink "$lockscreen_source" "$LOCKSCREEN_WALLPAPER"
           }
@@ -1034,13 +1546,12 @@
             local wallpaper_path="$1"
             local current_wallpaper
 
-            [ -f "$wallpaper_path" ] || {
-              echo "File not found: $wallpaper_path" >&2
+            if [ ! -f "$wallpaper_path" ]; then
+              notify_info "Error" "File not found: $wallpaper_path"
               return 1
-            }
+            fi
 
             current_wallpaper=$(readlink -f "$CURRENT_WALLPAPER" 2>/dev/null || true)
-
             if [ "$current_wallpaper" != "$wallpaper_path" ]; then
               ensure_symlink "$wallpaper_path" "$CURRENT_WALLPAPER"
             fi
@@ -1049,9 +1560,7 @@
 
             awww img "$wallpaper_path" --transition-type any --transition-fps 60 --transition-duration 0.5
 
-            notify-send -a "wallpaper-manager" -i "$LOCKSCREEN_WALLPAPER" -u low \
-              "Wallpaper changed" \
-              "Wallpaper set to: $(basename "$wallpaper_path")"
+            notify_info "Wallpaper changed" "Set to: $(basename "$wallpaper_path")" "$LOCKSCREEN_WALLPAPER"
           }
 
           get_current_index() {
@@ -1064,23 +1573,25 @@
                 return 0
               fi
             done
-
             printf '0\n'
           }
 
           next_wall() {
+            init_wallpapers
             local index
             index=$(get_current_index)
             set_wall "''${WALLPAPER_LIST[$(((index + 1) % ''${#WALLPAPER_LIST[@]}))]}"
           }
 
           prev_wall() {
+            init_wallpapers
             local index
             index=$(get_current_index)
             set_wall "''${WALLPAPER_LIST[$(((index - 1 + ''${#WALLPAPER_LIST[@]}) % ''${#WALLPAPER_LIST[@]}))]}"
           }
 
           random_wall() {
+            init_wallpapers
             local current_wallpaper next_wallpaper index
             current_wallpaper=$(readlink -f "$CURRENT_WALLPAPER" 2>/dev/null || true)
 
@@ -1098,85 +1609,60 @@
             set_wall "$next_wallpaper"
           }
 
-          wallpaper_to_rofi_line() {
-            local wallpaper_path="$1"
-            local wallpaper_name wallpaper_thumb icon_path
-
-            wallpaper_name=$(basename "$wallpaper_path")
-            wallpaper_thumb=$(get_thumbnail_path "$wallpaper_path")
-
-            if [ -s "$wallpaper_thumb" ]; then
-              icon_path="$wallpaper_thumb"
-            else
-              icon_path=""
-            fi
-
-            printf '%s:::%s:::%s\0icon\x1f%s\n' "$wallpaper_name" "$wallpaper_path" "$wallpaper_thumb" "$icon_path"
-          }
-
-          get_rofi_style() {
-            local columns=4
-
-          cat <<EOF
-          listview{columns:''${columns}; spacing:5em;}
-          element{orientation:vertical; border-radius:20px;}
-          element-icon{size:26em;border-radius:0px;}
-          element-text{padding:1em;}
-          EOF
-          }
-
-          generate_rofi_lines() {
-            local rofi_input_file
-            rofi_input_file=$(mktemp)
-
-            for wallpaper in "''${WALLPAPER_LIST[@]}"; do
-              wallpaper_to_rofi_line "$wallpaper"
-            done > "$rofi_input_file"
-
-            printf '%s\n' "$rofi_input_file"
-          }
-
-          select_wall() {
-            [ "''${#WALLPAPER_LIST[@]}" -gt 0 ] || exit 1
-
-            local rofi_input_file rofi_output selected_path rofi_style
-
+          menu_select_wall() {
+            init_wallpapers
             prewarm_thumbnails >/dev/null 2>&1 &
 
-            rofi_input_file=$(generate_rofi_lines)
-            rofi_style=$(get_rofi_style)
+            local rofi_input_file
+            rofi_input_file=$(mktemp)
+            trap 'rm -f "$rofi_input_file"' EXIT
 
-            cleanup_rofi_input_file() {
-              [ -n "''${rofi_input_file:-}" ] && [ -f "$rofi_input_file" ] && rm -f "$rofi_input_file"
-            }
-            trap cleanup_rofi_input_file EXIT
+            for wallpaper in "''${WALLPAPER_LIST[@]}"; do
+              local w_name w_thumb w_icon
+              w_name=$(basename "$wallpaper")
+              w_thumb=$(get_thumbnail_path "$wallpaper")
+              [ -s "$w_thumb" ] && w_icon="$w_thumb" || w_icon=""
 
+              printf '%s:::%s:::%s\0icon\x1f%s\n' "$w_name" "$wallpaper" "$w_thumb" "$w_icon"
+            done > "$rofi_input_file"
+
+            local columns=4
+            local rofi_style="listview{columns:''${columns}; spacing:5em;} element{orientation:vertical; border-radius:20px;} element-icon{size:26em;border-radius:0px;} element-text{padding:1em;}"
+
+            local rofi_output
             rofi_output=$(rofi -dmenu -show-icons \
               -display-column-separator ":::" -display-columns 1 \
-              -theme-str "$rofi_style" -theme "${wallpaperManagerTheme}" <"$rofi_input_file")
+              -theme-str "$rofi_style" \
+              -theme "${wallpaperManagerTheme}" \
+              -p "Wallpapers" <"$rofi_input_file")
 
-            [ -n "$rofi_output" ] || return 1
+            [ -z "$rofi_output" ] && return 1
 
+            local selected_path
             selected_path=$(awk -F ':::' '{print $2}' <<<"$rofi_output")
 
             if [ -n "$selected_path" ] && [ -f "$selected_path" ]; then
               set_wall "$selected_path"
               return 0
+            else
+              notify_info "Error" "Selected file does not exist."
+              exit 1
             fi
-
-            echo "Selected file does not exist: $selected_path" >&2
-            exit 1
           }
 
           main() {
+            set_constants
+            setup
+
             case "''${1-}" in
-              -n|--next)   next_wall ;;
-              -p|--prev)   prev_wall ;;
-              -r|--random) random_wall ;;
-              -s|--set)    set_wall "''${2:?Error: Please provide a wallpaper file path}" ;;
-              -S|--select) select_wall ;;
-              -c|--current) readlink -f "$CURRENT_WALLPAPER" ;;
-              -h|--help|*) echo "Usage: $0 [ --next | --prev | --random | --set <wallpaper> | --select | --current ]" ;;
+              "")            menu_select_wall ;;
+              -n|--next)     next_wall ;;
+              -p|--prev)     prev_wall ;;
+              -r|--random)   random_wall ;;
+              -s|--set)      set_wall "''${2:?Error: Please provide a wallpaper file path}" ;;
+              -c|--current)  readlink -f "$CURRENT_WALLPAPER" ;;
+              -h|--help)     echo "Usage: ''${0##*/} [ -n/--next | -p/--prev | -r/--random | -s/--set <wallpaper> | -c/--current | -h/--help ]" ;;
+              *)             echo "Unknown option: $1" >&2; exit 1 ;;
             esac
           }
 
@@ -1187,6 +1673,7 @@
     {
       home.packages = [
         rofiPowermenu
+        rofiNetworkManager
         rofiLauncher
         rofiClipboardManager
         rofiWallpaperManager
