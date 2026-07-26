@@ -11,29 +11,45 @@
           procps
         ];
         text = ''
-          if [[ "''${1:-}" != "-t" ]]; then
+          set_constants() {
+            readonly ICON_ON="󰤄"
+            readonly ICON_OFF=""
+            readonly LOCKFILE="/tmp/hyprsunset.lock"
+            readonly WAYBAR_SIGNAL="RTMIN+1"
+          }
+
+          print_status() {
             if systemctl --user is-active --quiet hyprsunset; then
-              printf "󰤄\n"
+              printf "%s\n" "$ICON_ON"
             else
-              printf "\n"
+              printf "%s\n" "$ICON_OFF"
             fi
-            exit 0
-          fi
+          }
 
-          LOCKFILE="/tmp/hyprsunset.lock"
-          exec 200>"$LOCKFILE"
-          flock -n 200 || exit 1
+          toggle_sunset() {
+            exec 200>"$LOCKFILE"
+            flock -n 200 || exit 1
 
-          if systemctl --user is-active --quiet hyprsunset; then
-            systemctl --user stop hyprsunset
-          else
-            systemctl --user start hyprsunset
-          fi
+            if systemctl --user is-active --quiet hyprsunset; then
+              systemctl --user stop hyprsunset
+            else
+              systemctl --user start hyprsunset
+            fi
 
-          sleep 0.1
-          pkill -RTMIN+1 waybar
+            sleep 0.1
+            pkill -"$WAYBAR_SIGNAL" waybar
+          }
 
-          exit 0
+          main() {
+            set_constants
+
+            case "''${1:-}" in
+              -t|--toggle) toggle_sunset ;;
+              *)           print_status ;;
+            esac
+          }
+
+          main "$@"
         '';
       };
 
@@ -49,58 +65,80 @@
           procps
         ];
         text = ''
-          LOC="${config.home.homeDirectory}/colorpicker"
-          LIMIT=10
+          set_constants() {
+            readonly CACHE_DIR="${config.home.homeDirectory}/colorpicker"
+            readonly HISTORY_FILE="$CACHE_DIR/colors"
+            readonly HISTORY_LIMIT=10
 
-          mkdir -p "$LOC"
-          touch "$LOC/colors"
+            readonly ICON_MAIN=""
+            readonly ICON_DOT=""
+            readonly DEFAULT_COLOR="#ffffff"
+            readonly WAYBAR_SIGNAL="RTMIN+1"
+          }
 
-          case "''${1:-}" in
-            -l)
-              cat "$LOC/colors"
-              exit 0
-              ;;
+          setup() {
+            mkdir -p "$CACHE_DIR"
+            touch "$HISTORY_FILE"
+          }
 
-            -j)
-              text="$(head -n 1 "$LOC/colors" || true)"
-              if ! [[ "$text" =~ ^#[0-9a-fA-F]{6}$ ]]; then
-                text="#ffffff"
+          print_json() {
+            local current_color tooltip all_colors
+
+            current_color=$(head -n 1 "$HISTORY_FILE" || true)
+            if ! [[ "$current_color" =~ ^#[0-9a-fA-F]{6}$ ]]; then
+              current_color="$DEFAULT_COLOR"
+            fi
+
+            mapfile -t all_colors < <(tail -n +2 "$HISTORY_FILE" | head -n 5)
+
+            tooltip="<b>   HISTORY</b>\n\n"
+            tooltip+="-> <b>$current_color</b>  <span color='$current_color'>$ICON_DOT</span>  \n"
+
+            for color in "''${all_colors[@]}"; do
+              if [[ "$color" =~ ^#[0-9a-fA-F]{6}$ ]]; then
+                tooltip+="   <b>$color</b>  <span color='$color'>$ICON_DOT</span>  \n"
               fi
+            done
 
-              mapfile -t allcolors < <(tail -n +2 "$LOC/colors" | head -n 5)
+            tooltip="''${tooltip//$'\n'/\\n}"
 
-              tooltip="<b>   HISTÓRICO</b>\n\n"
-              tooltip+="-> <b>$text</b>  <span color='$text'></span>  \n"
+            printf "{\"text\":\"<span color='%s'>%s</span>\",\"tooltip\":\"%s\"}\n" \
+              "$current_color" "$ICON_MAIN" "$tooltip"
+          }
 
-              for i in "''${allcolors[@]}"; do
-                if [[ "$i" =~ ^#[0-9a-fA-F]{6}$ ]]; then
-                  tooltip+="   <b>$i</b>  <span color='$i'></span>  \n"
-                fi
-              done
+          pick_color() {
+            pkill -x hyprpicker 2>/dev/null || true
 
-              tooltip="''${tooltip//$'\n'/\\n}"
+            local new_color prev_colors
+            new_color=$(hyprpicker -a 2>/dev/null | grep -Eo '^#[0-9a-fA-F]{6}$' || true)
 
-              printf "{\"text\":\"<span color='%s'></span>\",\"tooltip\":\"%s\"}\n" "$text" "$tooltip"
-              exit 0
-              ;;
-          esac
+            [ -z "$new_color" ] && exit 1
 
-          pkill -x hyprpicker 2>/dev/null || true
+            printf "%s" "$new_color" | wl-copy
 
-          color="$(hyprpicker -a 2>/dev/null | grep -Eo '^#[0-9a-fA-F]{6}$' || true)"
+            prev_colors=$(grep -vFx "$new_color" "$HISTORY_FILE" 2>/dev/null | head -n $((HISTORY_LIMIT - 1)) || true)
 
-          if [[ -z "$color" ]]; then
-            exit 1
-          fi
+            {
+              printf "%s\n" "$new_color"
+              printf "%s\n" "$prev_colors"
+            } | sed '/^$/d' > "$HISTORY_FILE"
 
-          printf "%s" "$color" | wl-copy
+            notify-send -u low -t 2000 "Color Picker" "Copied Color: $new_color"
+            pkill -"$WAYBAR_SIGNAL" waybar
+          }
 
-          prevColors="$(grep -vFx "$color" "$LOC/colors" 2>/dev/null | head -n $((LIMIT - 1)) || true)"
-          { printf "%s\n" "$color"; printf "%s\n" "$prevColors"; } | sed '/^$/d' > "$LOC/colors"
+          main() {
+            set_constants
+            setup
 
-          notify-send -u low -t 2000 "Color Picker" "Copied Color: $color"
+            case "''${1:-}" in
+              -l|--list) cat "$HISTORY_FILE" ;;
+              -j|--json) print_json ;;
+              *)         pick_color ;;
+            esac
+          }
 
-          pkill -RTMIN+1 waybar
+          main "$@"
         '';
       };
     in
@@ -108,6 +146,10 @@
       home.packages = [
         waybarHyprsunset
         waybarColorpicker
+        pkgs.libnotify
+        pkgs.networkmanagerapplet
+        pkgs.pavucontrol
+        pkgs.pulseaudio
       ];
 
       programs.waybar = {
@@ -116,6 +158,7 @@
           # --- GENERAL SETTINGS ---
           "layer" = "top";
           "position" = "top";
+          "margin" = "8px 8px 0 8px";
           # --- MODULES DEFINITION ---
           "modules-left" = [ "group/group-left" ];
           "modules-center" = [ "group/group-center" ];
@@ -126,18 +169,20 @@
             "modules" = [
               "custom/notification"
               "clock"
+              "mpris"
+              "privacy"
               "tray"
             ];
           };
           "custom/notification" = {
             "format" = "";
-            "tooltip" = false;
             "on-click" = "swaync-client -t -sw";
+            "tooltip" = false;
             "escape" = true;
           };
           "clock" = {
             "format" = "{:%H:%M:%S}";
-            "format-alt" = "{:%A, %B %d, %Y (%R)}  ";
+            "format-alt" = "{:%H:%M - %B %d, %Y}";
             "tooltip-format" = "<tt><small>{calendar}</small></tt>";
             "calendar" = {
               "mode" = "year";
@@ -158,6 +203,58 @@
               "on-scroll-down" = "shift_down";
             };
             "interval" = 1;
+          };
+          "mpris" = {
+            "format" = "{player_icon} {status_icon} {dynamic}";
+            "format-paused" = "{player_icon} {status_icon} {dynamic}";
+            "status-icons" = {
+              "playing" = "󰐊";
+              "paused" = "󰏤";
+              "stopped" = "󰓛";
+            };
+            "player-icons" = {
+              "default" = "󱜏";
+              "spotify_player" = "";
+              "spotify" = "";
+              "firefox" = "󰺕";
+              "chrome" = "";
+              "vlc" = "󰕼";
+              "mpv" = "󰎁";
+            };
+            "on-click" = "playerctl play-pause";
+            "on-click-right" = "playerctl next";
+            "on-scroll-up" = "playerctl next";
+            "on-scroll-down" = "playerctl previous";
+            "tooltip-format" = "{dynamic}";
+            "tooltip-format-stopped" = "No media playing";
+            "dynamic-order" = [
+              "title"
+              "artist"
+            ];
+            "dynamic-separator" = " • ";
+            "ellipsis" = "…";
+            "title-len" = 20;
+            "artist-len" = 10;
+            "max-length" = 30;
+          };
+          "privacy" = {
+            "modules" = [
+              {
+                "type" = "screenshare";
+                "tooltip" = false;
+              }
+              {
+                "type" = "audio-in";
+                "tooltip" = false;
+              }
+              {
+                "type" = "location";
+                "icon-name" = "location-services-active-symbolic";
+              }
+            ];
+            "icon-size" = 14;
+            "icon-spacing" = 10;
+            "transition-duration" = 250;
           };
           "tray" = {
             "icon-size" = 14;
@@ -191,15 +288,18 @@
             "modules" = [
               "group/group-hardware"
               "group/group-tools"
+              "pulseaudio#microphone"
+              "group/audio"
+              "group/brightness"
               "group/group-system"
             ];
           };
           "group/group-hardware" = {
             "orientation" = "inherit";
             "drawer" = {
-              "transition-duration" = 400;
-              "children-class" = "extras";
+              "children-class" = "hardware";
               "transition-left-to-right" = false;
+              "transition-duration" = 400;
             };
             "modules" = [
               "custom/hardware"
@@ -214,48 +314,56 @@
             "tooltip" = false;
           };
           "cpu" = {
-            "format" =
-              "<span font='JetBrainsMono Nerd Font Mono 15' rise='-2600'>󰍛</span> <span font='JetBrainsMono Nerd Font Mono 9'>{usage}%</span>";
+            "format" = "<span size='12pt'>󰍛</span> <span size='10pt' rise='500'>{usage}%</span>";
+            "tooltip-format" = "Load: {load}\nAvg frequency: {avg_frequency} GHz";
             "tooltip" = true;
             "interval" = 5;
           };
           "memory" = {
             "format" =
-              "<span font='JetBrainsMono Nerd Font Mono 15' rise='-2600'></span> <span font='JetBrainsMono Nerd Font Mono 9'>{percentage}%</span>";
+              "<span size='11pt' rise='-2000'></span> <span size='10pt' rise='-2000'>{percentage}%</span>";
+            "tooltip-format" =
+              "RAM: {used:0.1f}GiB / {total:0.1f}GiB ({percentage}%)\nSwap: {swapUsed:0.1f}GiB / {swapTotal:0.1f}GiB ({swapPercentage}%)";
             "tooltip" = true;
             "interval" = 5;
           };
           "disk" = {
             "path" = "/";
-            "interval" = 30;
+            "format" = "<span size='11pt' rise='-2000'></span> <span size='10pt' rise='-2000'>{percentage_used}%</span>";
+            "tooltip" = true;
+            "tooltip-format" = "Free: {free} / {total} ({percentage_free}%)\nUsed: {used} ({percentage_used}%)";
             "states" = {
               "warning" = 90;
               "critical" = 95;
             };
-            "format" =
-              "<span font='JetBrainsMono Nerd Font Mono 15' rise='-2600'></span> <span font='JetBrainsMono Nerd Font Mono 9'>{percentage_used}%</span>";
-            "tooltip" = true;
-            "tooltip-format" = "Free: {free} / {total} ({percentage_free}%)\nUsed: {used} ({percentage_used}%)";
+            "interval" = 1800;
           };
           "temperature" = {
-            "hwmon-path" = "/sys/class/hwmon/hwmon2/temp1_input";
-            "critical-threshold" = 85;
-            "interval" = 10;
-            "format" =
-              "<span font='JetBrainsMono Nerd Font Mono 11'>{icon}</span> <span font='JetBrainsMono Nerd Font Mono 9' rise='1000'>{temperatureC}°C</span>";
+            "hwmon-path" = [
+              "/sys/class/hwmon/hwmon0/temp1_input"
+              "/sys/class/hwmon/hwmon1/temp1_input"
+              "/sys/class/hwmon/hwmon2/temp1_input"
+              "/sys/class/hwmon/hwmon3/temp1_input"
+              "/sys/class/hwmon/hwmon4/temp1_input"
+              "/sys/class/hwmon/hwmon5/temp1_input"
+            ];
+            "format" = "<span size='12pt' rise='-5000'>{icon}</span> <span size='10pt' rise='-4000'>{temperatureC}°C</span>";
             "format-icons" = [
               "󱃃"
               "󰔏"
               "󱃂"
             ];
-            "tooltip-format" = "Temperature: {temperatureC}°C";
+            "tooltip-format" = "CPU Temperature: {temperatureC}°C";
+            "warning-threshold" = 85;
+            "critical-threshold" = 95;
+            "interval" = 10;
           };
           "group/group-tools" = {
             "orientation" = "inherit";
             "drawer" = {
-              "transition-duration" = 400;
-              "children-class" = "extras";
+              "children-class" = "tools";
               "transition-left-to-right" = false;
+              "transition-duration" = 400;
             };
             "modules" = [
               "custom/tools"
@@ -265,31 +373,104 @@
             ];
           };
           "custom/tools" = {
-            "format" = "";
+            "format" = "<span size='12pt'>󱁤</span>";
             "tooltip" = false;
           };
           "custom/cliphist" = {
-            "format" = "";
-            "tooltip" = false;
-            "on-click" = "rofi-clipboard-manager";
+            "format" = "<span size='11pt'></span>";
+            "on-click" = "rofi-clipboard-manager -H";
             "on-click-right" = "rofi-clipboard-manager -w";
+            "tooltip" = false;
           };
           "custom/colorpicker" = {
-            "format" = "{}";
+            "format" = "<span size='11pt'>{}</span>";
+            "on-click" = "waybar-colorpicker";
+            "exec" = "waybar-colorpicker -j";
             "return-type" = "json";
             "interval" = "once";
             "tooltip" = true;
-            "on-click" = "waybar-colorpicker";
-            "exec" = "waybar-colorpicker -j";
             "signal" = 1;
           };
           "custom/bluefilter" = {
-            "format" = "{}";
-            "tooltip" = false;
+            "format" = "<span size='12pt'>{}</span>";
             "on-click" = "waybar-hyprsunset -t";
             "exec" = "waybar-hyprsunset";
+            "tooltip" = false;
             "interval" = 1000;
             "signal" = 1;
+          };
+          "pulseaudio#microphone" = {
+            "format" = "{format_source}";
+            "format-source" = "<span size='13pt'>󰍬</span>";
+            "format-source-muted" = "<span size='13pt'>󰍭</span>";
+            "on-click" = "wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle";
+            "on-scroll-up" = "";
+            "on-scroll-down" = "";
+            "tooltip" = false;
+          };
+          "group/audio" = {
+            "orientation" = "inherit";
+            "drawer" = {
+              "children-class" = "audio";
+              "transition-left-to-right" = false;
+              "transition-duration" = 400;
+            };
+            "modules" = [
+              "pulseaudio"
+              "pulseaudio/slider"
+            ];
+          };
+          "pulseaudio/slider" = {
+            "orientation" = "horizontal";
+            "min" = 0;
+            "max" = 100;
+          };
+          "pulseaudio" = {
+            "format" = "{icon}";
+            "format-muted" = "<span size='13pt'></span>";
+            "format-icons" = {
+              "headphone" = "<span size='13pt'>󰋋</span>";
+              "headset" = "<span size='13pt'>󰋎</span>";
+              "headset-muted" = "<span size='13pt'>󰟎</span>";
+              "default" = [
+                "<span size='13pt'></span>"
+                "<span size='13pt'></span>"
+                "<span size='13pt'></span>"
+              ];
+            };
+            "on-click" = "pavucontrol";
+            "on-click-right" = "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle";
+            "tooltip-format" = "Volume: {volume}%";
+            "ignored-sinks" = [ "Easy Effects Sink" ];
+            "tooltip" = true;
+          };
+          "group/brightness" = {
+            "orientation" = "inherit";
+            "drawer" = {
+              "children-class" = "brightness";
+              "transition-left-to-right" = false;
+              "transition-duration" = 400;
+            };
+            "modules" = [
+              "backlight"
+              "backlight/slider"
+            ];
+          };
+          "backlight/slider" = {
+            "orientation" = "horizontal";
+            "min" = 5;
+            "max" = 100;
+          };
+          "backlight" = {
+            "format" = "{icon}";
+            "format-icons" = [
+              "<span size='13pt'>󰃞</span>"
+              "<span size='13pt'>󰃝</span>"
+              "<span size='13pt'>󰃟</span>"
+              "<span size='13pt'>󰃠</span>"
+            ];
+            "tooltip-format" = "Brightness: {percent}%";
+            "tooltip" = true;
           };
           "group/group-system" = {
             "orientation" = "inherit";
@@ -301,61 +482,98 @@
             ];
           };
           "bluetooth" = {
-            "format" = "";
-            "format-on" = "";
-            "format-disabled" = "󰂲";
-            "format-connected-battery" = "󰂯";
-            "format-alt" = "{device_alias} 󰂯";
-            "tooltip" = true;
+            "format-on" = "<span size='13pt'>󰂯</span>";
+            "format-off" = "<span size='13pt'>󰂲</span>";
+            "format-disabled" = "<span size='13pt'>󰂲</span>";
+            "format-connected" = "<span size='13pt'>󰂱</span>";
+            "format-no-controller" = "<span size='13pt'>󰂯</span>";
             "tooltip-format" = "{device_enumerate}";
-            "tooltip-format-enumerate-connected" = "{device_alias}";
-            "tooltip-format-enumerate-connected-battery" = "{device_alias} {device_battery_percentage}%";
-            "on-click" = "rfkill toggle bluetooth";
-            "on-click-right" = "blueman-manager";
+            "tooltip-format-enumerate-connected" = "{device_address}";
+            "tooltip-format-enumerate-connected-battery" = "{device_alias} | Battery {device_battery_percentage}%";
+            "on-click" = "blueman-manager";
+            "on-click-right" = "rfkill toggle bluetooth";
+            "tooltip" = true;
           };
           "network" = {
-            "format" = "󰖪";
-            "format-wifi" = "";
-            "format-ethernet" = "󰈀";
-            "format-disconnected" = "";
-            "tooltip-format-disconnected" = "Error";
-            "tooltip-format-wifi" = "{essid} ({signalStrength}%) ";
-            "tooltip-format-ethernet" = "{ifname} 🖧";
-            "on-click" = "rfkill toggle wifi";
-            "on-click-right" = "kitty nmtui";
+            "format-icons" = {
+              "wifi" = [
+                "<span size='12pt'>󰤯</span>"
+                "<span size='12pt'>󰤟</span>"
+                "<span size='12pt'>󰤢</span>"
+                "<span size='12pt'>󰤥</span>"
+                "<span size='12pt'>󰤨</span>"
+              ];
+              "ethernet" = "<span size='12pt'>󰈀</span>";
+              "disabled" = "<span size='12pt'>󰤭</span>";
+              "disconnected" = "<span size='12pt'>󰤩</span>";
+            };
+            "format-wifi" = "{icon}";
+            "format-ethernet" = "{icon}";
+            "format-disconnected" = "{icon}";
+            "format-disabled" = "{icon}";
+            "tooltip-format-wifi" =
+              "{essid}\nSignal: {signalStrength}%\nIP: {ipaddr}/{cidr}\n↓ {bandwidthDownBits}  ↑ {bandwidthUpBits}";
+            "tooltip-format-ethernet" = "{ifname}\nIP: {ipaddr}/{cidr}\nGateway: {gwaddr}";
+            "tooltip-format-disconnected" = "Disconnected";
+            "tooltip-format-disabled" = "Wi-Fi disabled";
+            "on-click" = "rofi-network-manager";
+            "on-click-right" = "rfkill toggle wifi";
+            "tooltip" = true;
+            "max-length" = 20;
+            "interval" = 5;
           };
           "battery" = {
-            "interval" = 3;
             "states" = {
-              "good" = 95;
-              "warning" = 30;
-              "critical" = 20;
+              "warning" = 20;
+              "critical" = 10;
             };
-            "format" =
-              "<span font='JetBrainsMono Nerd Font Mono 10' >{icon}</span> <span font='JetBrainsMono Nerd Font Mono 9'>{capacity}%</span>";
-            "rotate" = 0;
-            "format-charging" = "󰂄 {capacity}%";
-            "format-plugged" = "󰂄 {capacity}%";
-            "format-alt" = "{time} {icon}";
-            "format-icons" = [
-              "󰂎"
-              "󰁺"
-              "󰁻"
-              "󰁼"
-              "󰁽"
-              "󰁾"
-              "󰁿"
-              "󰂀"
-              "󰂁"
-              "󰂂"
-              "󰁹"
-            ];
+            "events" = {
+              "on-charging" = "notify-send -u normal 'Power' 'Connected to AC power'";
+              "on-charging-100" = "notify-send -u normal 'Battery' 'Battery is fully charged'";
+              "on-discharging" = "notify-send -u normal 'Power' 'Running on battery'";
+              "on-discharging-warning" = "notify-send -u normal 'Battery Warning' 'Battery level is low'";
+              "on-discharging-critical" =
+                "notify-send -u critical 'Battery Critical' 'Battery level is critically low'";
+            };
+            "format" = "{icon}";
+            "format-icons" = {
+              "default" = [
+                "<span size='12pt'>󰂎</span>"
+                "<span size='12pt'>󰁺</span>"
+                "<span size='12pt'>󰁻</span>"
+                "<span size='12pt'>󰁼</span>"
+                "<span size='12pt'>󰁽</span>"
+                "<span size='12pt'>󰁾</span>"
+                "<span size='12pt'>󰁿</span>"
+                "<span size='12pt'>󰂀</span>"
+                "<span size='12pt'>󰂁</span>"
+                "<span size='12pt'>󰂂</span>"
+                "<span size='12pt'>󰁹</span>"
+              ];
+              "charging" = [
+                "<span size='12pt'>󰢟</span>"
+                "<span size='12pt'>󰢜</span>"
+                "<span size='12pt'>󰂆</span>"
+                "<span size='12pt'>󰂇</span>"
+                "<span size='12pt'>󰂈</span>"
+                "<span size='12pt'>󰢝</span>"
+                "<span size='12pt'>󰂉</span>"
+                "<span size='12pt'>󰢞</span>"
+                "<span size='12pt'>󰂊</span>"
+                "<span size='12pt'>󰂋</span>"
+                "<span size='12pt'>󰂅</span>"
+              ];
+            };
+            "format-critical" = "<span size='12pt'>󰂃</span>";
+            "tooltip-format" = "{capacity}% - {time} remaining";
+            "tooltip-format-charging" = "Charging: {capacity}% - {time} until full";
+            "tooltip" = true;
+            "interval" = 10;
           };
           "custom/power" = {
-            "format" = "⏻";
+            "format" = "<span size='14pt'>󰐥</span>";
+            "on-click" = "rofi-power-menu";
             "tooltip" = false;
-            "on-click" = "rofi-powermenu";
-            "interval" = "once";
           };
         };
         # --- STYLE ---
@@ -368,14 +586,42 @@
           @define-color accent-active  #79B8FF;
           @define-color accent-urgent  #FF7A84;
           @define-color accent-warning #FFD866;
+          @define-color accent-success #7EE787;
+
+          @keyframes blink-success {
+            from {
+              color: @foreground;
+            }
+            to {
+              color: @accent-success;
+            }
+          }
+
+          @keyframes blink-warning {
+            from {
+              color: @foreground;
+            }
+            to {
+              color: @accent-warning;
+            }
+          }
+
+          @keyframes blink-urgent {
+            from {
+              color: @foreground;
+            }
+            to {
+              color: @accent-urgent;
+            }
+          }
 
           * {
             all: unset;
             border: none;
             box-shadow: none;
-            font-size: 1.2rem;
-            min-height: 2rem;
-            font-family: 'JetBrainsMono Nerd Font Mono', 'monospace';
+            min-height: 25px;
+            font-size: 1rem;
+            font-family: 'JetBrainsMono Nerd Font Propo';
           }
 
           window#waybar {
@@ -392,16 +638,38 @@
             color: @foreground;
           }
 
+          #custom-notification,
+          #clock,
+          #mpris,
+          #privacy,
+          #tray,
+          #custom-hardware,
+          #custom-tools,
+          #pulseaudio.microphone,
+          #pulseaudio,
+          #backlight,
+          #group-system {
+            min-width: 25px;
+            padding: 0 10px;
+            color: @foreground;
+            background-color: @background;
+            border-radius: 8px;
+          }
+
           #custom-notification:hover,
           #clock:hover,
-          #custom-hardware:hover,
+          #privacy:hover,
           #cpu:hover,
           #memory:hover,
           #disk:hover,
           #temperature:hover,
-          #custom-tools:hover,
+          #custom-hardware:hover,
           #custom-cliphist:hover,
           #custom-bluefilter:hover,
+          #custom-tools:hover,
+          #pulseaudio.microphone:hover,
+          #pulseaudio:hover,
+          #backlight:hover,
           #bluetooth:hover,
           #network:hover,
           #battery:hover,
@@ -411,43 +679,34 @@
           }
 
           /* Modules Left */
-
           #custom-notification,
           #clock,
+          #mpris,
+          #privacy,
           #tray {
-            margin: 0.3rem 0 0 0.6rem;
-            padding: 0 1rem;
-            transition: all 0.3s ease;
-            color: @foreground;
-            background-color: @background;
-            border-radius: 8px;
+            margin: 0 4px;
           }
 
-          #custom-notification {
-            font-size: 1.2rem;
-          }
-
-          #clock {
-            font-size: 0.9rem;
+          #clock,
+          #mpris {
+            padding: 0 15px;
           }
 
           #tray window decoration {
-            padding: 0.5rem 0.8rem;
+            padding: 6px 12px;
             background-color: alpha(@background, 0.9);
             border-radius: 8px;
           }
 
           /* Modules Center */
-
           #workspaces {
-            margin: 0.3rem 0 0 0;
-            padding: 0px 0.7rem;
+            padding: 0px 10px;
             background-color: @background;
             border-radius: 8px;
           }
 
           #workspaces button {
-            padding: 0 0.4rem;
+            padding: 0 5px;
             color: alpha(@foreground-muted, 0.4);
             transition: all 0.2s ease;
           }
@@ -481,30 +740,26 @@
 
           /* Modules Right */
 
+          /* Group leaders */
           #custom-hardware,
-          #custom-tools {
-            font-size: 1.3rem;
-            margin: 0.3rem 0 0 0.6rem;
-            padding: 0 1rem;
-            color: @foreground;
-            background-color: @background;
-            border-radius: 8px;
+          #custom-tools,
+          #pulseaudio.microphone,
+          #pulseaudio,
+          #backlight,
+          #group-system {
+            margin: 0 4px;
           }
 
-          /* Left Components*/
+          /* Left Components */
           #cpu,
-          #custom-cliphist,
-          #bluetooth {
-            padding-left: 1rem;
+          #custom-cliphist {
             border-bottom-left-radius: 8px;
             border-top-left-radius: 8px;
           }
 
           /* Rigth Components */
           #temperature,
-          #custom-bluefilter,
-          #custom-power {
-            padding-right: 1rem;
+          #custom-bluefilter {
             border-bottom-right-radius: 8px;
             border-top-right-radius: 8px;
           }
@@ -516,72 +771,93 @@
           #custom-cliphist,
           #custom-colorpicker,
           #custom-bluefilter,
+          #pulseaudio.microphone
+          #pulseaudio,
+          #backlight,
           #bluetooth,
           #network,
           #battery,
           #custom-power {
-            margin-top: 0.3rem;
+            padding: 0 8px;
             color: @foreground;
             background-color: @background;
           }
 
-          #memory {
-            padding: 0 0.8rem 0 0.8rem;
+          #pulseaudio-slider,
+          #backlight-slider {
+            background-color: @background;
+            padding: 0 10px;
+            border-radius: 8px;
           }
 
-          #disk {
-            padding: 0 0.8rem 0 0;
+          #pulseaudio-slider slider,
+          #backlight-slider slider {
+            min-height: 0px;
+            min-width: 0px;
           }
 
-          #disk.warning {
+          #pulseaudio-slider trough,
+          #backlight-slider trough {
+            min-height: 8px;
+            min-width: 100px;
+            border-radius: 4px;
+            background-color: @background-alt;
+          }
+
+          #pulseaudio-slider highlight,
+          #backlight-slider highlight {
+            min-width: 8px;
+            min-height: 8px;
+            border-radius: 4px;
+            background: @foreground;
+          }
+
+          #disk.warning,
+          #temperature.warning {
             color: @accent-warning;
           }
 
-          #disk.critical {
-            color: @accent-urgent;
-          }
-
+          #disk.critical,
           #temperature.critical {
             color: @accent-urgent;
           }
 
-          #custom-colorpicker {
-            padding: 0 0.8rem;
+          #battery.charging.warning,
+          #battery.charging.critical {
+            animation-name: blink-success;
+            animation-duration: 2s;
+            animation-timing-function: ease-in-out;
+            animation-iteration-count: infinite;
+            animation-direction: alternate;
           }
 
-          #custom-cliphist,
-          #custom-colorpicker,
-          #custom-bluefilter {
-            font-size: 1.3rem;
+          #battery.charging.warning:hover,
+          #battery.charging.critical:hover {
+            color: @accent-success;
           }
 
-          #custom-cliphist {
-            margin-left: 0.6rem;
+          #battery.warning {
+            animation-name: blink-warning;
+            animation-duration: 2s;
+            animation-timing-function: ease-in-out;
+            animation-iteration-count: infinite;
+            animation-direction: alternate;
           }
 
-          #bluetooth,
-          #network,
-          #battery,
-          #custom-power {
-            padding: 0 0.7rem;
-            background-color: @background;
+          #battery.warning:hover {
+            color: @accent-warning;
           }
 
-          #bluetooth {
-            margin-left: 0.6rem;
-            font-size: 1.1rem;
+          #battery.critical {
+            animation-name: blink-urgent;
+            animation-duration: 0.8s;
+            animation-timing-function: ease-in-out;
+            animation-iteration-count: infinite;
+            animation-direction: alternate;
           }
 
-          #network {
-            font-size: 1.5rem;
-          }
-
-          #battery {
-            font-size: 0.8rem;
-          }
-
-          #custom-power {
-            margin-right: 0.6rem;
+          #battery.critical:hover {
+            color: @accent-urgent;
           }
         '';
       };
