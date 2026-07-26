@@ -76,11 +76,9 @@
             name: lua ''hl.dsp.window.move({ workspace = "special:${name}", silent = true })'';
           focusWorkspace = ws: lua ''hl.dsp.focus({ workspace = "${toString ws}" })'';
           moveToWorkspace = ws: lua ''hl.dsp.window.move({ workspace = "${toString ws}" })'';
-          moveToWorkspaceSilent =
-            ws: lua ''hl.dsp.window.move({ workspace = "${toString ws}", silent = true })'';
+          moveToWorkspaceSilent = ws: lua ''hl.dsp.window.move({ workspace = "${toString ws}", silent = true })'';
           drag = lua "hl.dsp.window.drag()";
           resize = lua "hl.dsp.window.resize()";
-
           resizeActive =
             x: y: lua "hl.dsp.window.resize({ x = ${toString x}, y = ${toString y}, relative = true })";
           sendshortcut = mod: key: lua ''hl.dsp.send_shortcut({ mods = "${mod}", key = "${key}" })'';
@@ -406,7 +404,7 @@
               };
               float = true;
             }
-            
+
             {
               match = {
                 title = "^(Open File)(.*)$";
@@ -518,16 +516,17 @@
             # --- System & Utilities ---
             (bind "SUPER + Delete" dsp.exit)
             (bind "SUPER + L" (dsp.exec "hyprlock"))
-            (bind "SUPER + ESCAPE" (dsp.exec "rofi-powermenu"))
+            (bind "SUPER + ESCAPE" (dsp.exec "rofi-power-menu"))
             (bind "SUPER + A" (dsp.exec "swaync-client -t -sw"))
+            (bind "SUPER + N" (dsp.exec "rofi-network-manager"))
 
             # --- Wallpaper Management ---
-            (bind "SUPER + SHIFT + W" (dsp.exec "rofi-wallpaper-manager --select"))
+            (bind "SUPER + SHIFT + W" (dsp.exec "rofi-wallpaper-manager"))
             (bind "SUPER + SHIFT + A" (dsp.exec "rofi-wallpaper-manager --prev"))
             (bind "SUPER + SHIFT + D" (dsp.exec "rofi-wallpaper-manager --next"))
 
             # --- Clipboard Management ---
-            (bind "SUPER + V" (dsp.exec "rofi-clipboard-manager -c"))
+            (bind "SUPER + V" (dsp.exec "rofi-clipboard-manager -H"))
             (bind "SUPER + SHIFT + V" (dsp.exec "rofi-clipboard-manager"))
 
             # --- Screenshots (Hyprshot) ---
@@ -549,7 +548,7 @@
 
             # --- Window Management ---
             (bind "SUPER + C" dsp.close)
-            (bind "SUPER + SHIFT + C" (dsp.exec "hyprctl killwindow"))
+            (bind "SUPER + SHIFT + C" (dsp.exec "hyprctl kill"))
             (bind "SUPER + W" dsp.float)
             (bind "SUPER + J" (dsp.layout "togglesplit"))
             (bind "SUPER + P" dsp.pseudo)
