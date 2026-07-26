@@ -65,6 +65,9 @@
         enableFishIntegration = true;
         enableZshIntegration = true;
         presets = [ "nerd-font-symbols" ];
+        settings = {
+          battery.disabled = true;
+        };
       };
 
       programs.zoxide = {
