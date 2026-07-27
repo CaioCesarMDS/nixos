@@ -6,7 +6,6 @@
       home = {
         packages = with pkgs; [
           bat
-          cmatrix
           fd
           ripgrep
         ];
