@@ -12,11 +12,9 @@
           enable = true;
           createDirectories = true;
           setSessionVariables = true;
-          documents = "${home}/Documents";
-          download = "${home}/Downloads";
-          music = "${home}/Music";
-          pictures = "${home}/Pictures";
-          videos = "${home}/Videos";
+          desktop = null;
+          templates = null;
+          publicShare = null;
           extraConfig = {
             PROJECTS = "${home}/Projects";
             WALLPAPERS = "${home}/Pictures/Wallpapers";
