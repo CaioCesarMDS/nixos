@@ -1,51 +1,73 @@
 { ... }:
 {
   den.aspects.swaync.homeManager =
-    { ... }:
+    { pkgs, ... }:
+    let
+      hyprsunsetToggle = pkgs.writeShellApplication {
+        name = "hyprsunset-toggle";
+        text = ''
+          STATE_DIR="$HOME/.local/state"
+          STATE_FILE="$STATE_DIR/hyprsunset-enabled"
+
+          mkdir -p "$STATE_DIR"
+
+          if systemctl --user is-active --quiet hyprsunset.service; then
+            systemctl --user stop hyprsunset.service
+            echo 0 > "$STATE_FILE"
+          else
+            systemctl --user start hyprsunset.service
+            echo 1 > "$STATE_FILE"
+          fi
+        '';
+      };
+    in
     {
+      home.packages = [
+        hyprsunsetToggle
+        pkgs.libnotify
+      ];
+
       services.swaync = {
         enable = true;
         settings = {
-          # --- GENERAL SETTINGS ---
           positionX = "left";
           positionY = "top";
           layer = "overlay";
+          cssPriority = "user";
           control-center-layer = "top";
           layer-shell = true;
-          cssPriority = "user";
+          fit-to-screen = true;
           control-center-width = 450;
           control-center-margin-top = 8;
           control-center-margin-bottom = 8;
           control-center-margin-right = 0;
           control-center-margin-left = 8;
+          notification-window-width = 350;
+          notification-icon-size = 96;
+          notification-body-image-width = 200;
+          notification-body-image-height = 200;
           notification-2fa-action = true;
           notification-inline-replies = true;
-          notification-window-width = 350;
-          notification-body-image-height = 180;
-          notification-body-image-width = 200;
-          timeout = 5;
           timeout-low = 3;
-          timeout-critical = 1;
-          fit-to-screen = true;
+          timeout = 4;
+          timeout-critical = 5;
           keyboard-shortcuts = true;
           image-visibility = "when-available";
           transition-time = 200;
           hide-on-clear = true;
           hide-on-action = true;
           script-fail-notify = true;
-          # --- WIDGET SETTINGS ---
           widgets = [
             "mpris"
             "title"
             "dnd"
             "notifications"
-            "volume"
-            "backlight"
             "buttons-grid"
           ];
           widget-config = {
             mpris = {
               show-album-art = "when-available";
+              autohide = true;
             };
             title = {
               text = "Notifications";
@@ -55,25 +77,20 @@
             dnd = {
               text = "Do Not Disturb";
             };
-            volume = {
-              label = "󰕾";
-            };
-            backlight = {
-              label = "󰃟";
-              device = "amdgpu_bl1";
-            };
             buttons-grid = {
               buttons-per-row = 4;
               actions = [
                 {
-                  label = "󰝟";
-                  command = "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle";
-                  type = "toggle";
+                  label = "";
+                  command = "hyprpicker -a -f hex -n";
                 }
                 {
-                  label = "󰍭";
-                  command = "wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle";
+                  label = "󰃟";
                   type = "toggle";
+                  command = "hyprsunset-toggle";
+                  update-command = ''
+                    sh -c 'systemctl --user is-active --quiet hyprsunset.service && echo true || echo false'
+                  '';
                 }
                 {
                   label = "";
@@ -81,7 +98,7 @@
                 }
                 {
                   label = "";
-                  command = "kitty bash -i -c btop";
+                  command = "kitty btop";
                 }
               ];
             };
@@ -97,118 +114,87 @@
           @define-color accent-active  #79B8FF;
           @define-color accent-urgent  #FF7A84;
 
-          :root {
-            --notification-icon-size: 50px;
-          }
-
           * {
             outline: none;
-            text-shadow: none;
+            box-shadow: none;
             color: @foreground;
             font-family: "JetBrainsMono Nerd Font Mono";
           }
 
-          /* Control Center */
-
           .control-center {
             background-color: @background;
-            border-radius: 10px;
-            box-shadow: 1px 1px 5px rgba(0, 0, 0, 0.65);
+            border-radius: 8px;
           }
 
           .control-center-list {
             background-color: transparent;
           }
 
-          /* Notification */
+          .control-center .notification-background .close-button,
+          .notification-group-close-button {
+            opacity: 0;
+          }
 
           .notification-group {
             background-color: transparent;
           }
 
-          .notification-row {
-            margin: 0;
-            padding: 0;
-          }
-
           .notification {
             background-color: @background;
             border-radius: 10px;
-            padding: 0.5rem;
+            padding: 12px; /* Aumentado de 6px para 12px */
+            margin: 4px 0px;
+          }
+
+          .notification:hover {
+            background-color: @background-alt;
           }
 
           .notification-content {
-            padding: 0.5rem 0 0.5rem 0;
-          }
-
-          .image {
-            border-radius: 10px;
-            margin-right: 0.5rem;
-            min-width: 60px;
-            min-height: 60px;
+            margin-top: 4px;
+            padding: 4px;
           }
 
           .summary {
-            font-size: 1.05rem;
-            font-weight: 600;
-          }
-
-          .body {
-            padding-top: 0.6rem;
-            font-size: 0.9rem;
-            font-weight: 400;
-            background-color: transparent;
+            padding-top: 2px;
+            font-size: 14px;
+            font-weight: bold;
           }
 
           .time {
-            font-size: 1.05rem;
-            font-weight: 600;
-            margin-right: 0.3rem;
+            padding-top: 2px;
+            font-size: 14px;
+            color: @foreground-muted;
           }
 
-          .close-button {
-            background-color: #40404c;
-            border-radius: 100%;
-            min-width: 0.5rem;
-            min-height: 0.5rem;
-            margin: 0.2rem 0 0 0;
-            padding: 0;
+          .body {
+            font-size: 13px;
+            padding-top: 4px;
           }
 
-          .close-button:hover {
-            background-color: #f22424;
-            transition: all 0.15s ease-in-out;
-          }
-
-          /* MPRIS Widget */
-
-          .widget-mpris {
-            padding: 0;
-            border-radius: 10px;
-            margin: 0;
+          .notification image {
+            margin-right: 12px;
+            border-radius: 0;
           }
 
           .widget-mpris-title {
+            font-size: 16px;
             font-weight: 700;
-            font-size: 1.1rem;
           }
 
           .widget-mpris-subtitle {
-            font-size: 0.9rem;
+            font-size: 14px;
           }
 
-          /* Notification title and clear button */
-
           .widget-title {
-            padding: 0.8rem 0.8rem 0 0.8rem;
-            font-weight: 700;
+            padding: 8px 8px 0 8px;
           }
 
           .widget-title > button {
-            font-size: 1.2rem;
-            background-color: #ea5e5e66;
+            padding: 2px 16px;
             border-radius: 12px;
-            padding: 0.1rem 1.08rem;
+            font-size: 18px;
+            background-color: #ea5e5e66;
             transition: all 0.4s ease-in-out;
           }
 
@@ -217,12 +203,8 @@
             box-shadow: 0px 0px 5px red;
           }
 
-          /* Do Not Disturb Widget */
-
           .widget-dnd {
-            min-height: 50px;
-            padding: 0.8rem;
-            color: @foreground;
+            padding: 8px;
           }
 
           .widget-dnd > switch {
@@ -244,35 +226,9 @@
             border-radius: 10px;
           }
 
-          /* Slider */
-
-          trough {
-            background-color: transparent;
-            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2), 0 0 8px rgba(0, 0, 0, 0.3);
-          }
-
-          trough highlight {
-            padding: 0.5rem;
-            background-color: @foreground;
-            box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.5);
-          }
-
-          trough slider {
-            all: unset;
-          }
-
-          /* Volume and Backligth Widgets */
-
-          .widget-volume label,
-          .widget-backlight label {
-            font-size: 1.5rem;
-          }
-
-          /* Buttons Widget */
-
           .widget-buttons-grid {
-            padding: 0 0.5rem 0.5rem 0.5rem;
-            margin: 0.6rem;
+            margin: 10px;
+            padding: 0 8px 8px 8px;
             background-color: transparent;
           }
 
@@ -289,13 +245,12 @@
           }
 
           .widget-buttons-grid > flowbox > flowboxchild > button label {
-            font-size: 1.6rem;
-            color: @foreground;
+            font-size: 24px;
             transition: all 0.7s ease;
           }
 
           .widget-buttons-grid > flowbox > flowboxchild > button:hover label {
-            color: black;
+            color: @background;
             transition: all 0.7s ease;
           }
 
@@ -304,7 +259,7 @@
           }
 
           .widget-buttons-grid > flowbox > flowboxchild > button.toggle:checked label {
-            color: black;
+            color: @background;
           }
         '';
       };
