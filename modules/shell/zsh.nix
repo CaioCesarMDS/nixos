@@ -44,7 +44,7 @@
             h = "history";
             ff = "fastfetch";
 
-            ls = "eza --no-filesize --no-time --no-user --no-permissions";
+            lse = "eza --no-filesize --no-time --no-user --no-permissions";
             ll = "eza -lh";
             la = "eza -a";
             lah = "eza -lah";
