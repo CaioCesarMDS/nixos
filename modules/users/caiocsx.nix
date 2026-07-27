@@ -10,10 +10,13 @@
       den.aspects.hyprland
       den.aspects.hypridle
       den.aspects.hyprlock
+      den.aspects.hyprsunset
+
+      den.aspects.desktop-packages
       den.aspects.rofi
       den.aspects.swaync
       den.aspects.waybar
-
+      den.aspects.clipboard
       den.aspects.theme
       den.aspects.xdg
       den.aspects.wallpapers

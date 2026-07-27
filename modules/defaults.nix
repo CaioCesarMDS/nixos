@@ -16,7 +16,7 @@
     den.aspects.system-defaults
     den.aspects.networking
     den.aspects.bluetooth
-    den.aspects.packages
+    den.aspects.core-packages
     den.aspects.fonts
   ];
 }
