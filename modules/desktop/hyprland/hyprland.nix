@@ -54,10 +54,10 @@
           (mkEnv "XCURSOR_SIZE" "20")
         ];
 
-        terminal = "kitty";
-        explorer = "thunar";
-        browser = "zen-beta";
-        editor = "codium";
+        terminal = "$TERMINAL";
+        fileManager = "$FILE_MANAGER";
+        browser = "$BROWSER";
+        editor = "$EDITOR";
 
         dsp = {
           exec = cmd: lua ''hl.dsp.exec_cmd("${cmd}")'';
@@ -113,8 +113,8 @@
           hyprcursor
           cliphist
           wl-clipboard
-          awww
           playerctl
+          awww
         ];
 
         wayland.windowManager.hyprland = {
@@ -463,28 +463,28 @@
 
             {
               match = {
-                class = "^(firefox|google-chrome|zen-beta)$";
+                class = "^(firefox|google-chrome|zen|zen-beta)$";
                 title = "^(Save As)$";
               };
               size = "800 600";
             }
             {
               match = {
-                class = "^(firefox|google-chrome|zen-beta)$";
+                class = "^(firefox|google-chrome|zen|zen-beta)$";
                 title = "^(Choose Files)$";
               };
               size = "800 600";
             }
             {
               match = {
-                class = "^(firefox|google-chrome|zen-beta)$";
+                class = "^(firefox|google-chrome|zen|zen-beta)$";
                 title = "^(Open File)$";
               };
               size = "800 600";
             }
             {
               match = {
-                class = "^(firefox|google-chrome|zen-beta)$";
+                class = "^(firefox|google-chrome|zen|zen-beta)$";
                 title = "^(Open Folder)$";
               };
               size = "800 600";
@@ -492,7 +492,7 @@
 
             {
               match = {
-                class = "(firefox|google-chrome|zen-beta)";
+                class = "(firefox|google-chrome|zen|zen-beta)";
                 title = ".*(Picture-in-Picture|Picture in Picture).*";
               };
               float = true;
@@ -510,7 +510,7 @@
             (bind "SUPER + Q" (dsp.exec terminal))
             (bind "SUPER + F" (dsp.exec browser))
             (bind "SUPER + D" (dsp.exec editor))
-            (bind "SUPER + E" (dsp.exec explorer))
+            (bind "SUPER + E" (dsp.exec fileManager))
             (bind "SUPER + R" (dsp.exec "rofi-launcher"))
 
             # --- System & Utilities ---
