@@ -76,7 +76,8 @@
             name: lua ''hl.dsp.window.move({ workspace = "special:${name}", silent = true })'';
           focusWorkspace = ws: lua ''hl.dsp.focus({ workspace = "${toString ws}" })'';
           moveToWorkspace = ws: lua ''hl.dsp.window.move({ workspace = "${toString ws}" })'';
-          moveToWorkspaceSilent = ws: lua ''hl.dsp.window.move({ workspace = "${toString ws}", silent = true })'';
+          moveToWorkspaceSilent =
+            ws: lua ''hl.dsp.window.move({ workspace = "${toString ws}", silent = true })'';
           drag = lua "hl.dsp.window.drag()";
           resize = lua "hl.dsp.window.resize()";
           resizeActive =
@@ -109,12 +110,7 @@
         home.packages = with pkgs; [
           hyprshot
           hyprpicker
-          hyprsunset
           hyprcursor
-          cliphist
-          wl-clipboard
-          playerctl
-          awww
         ];
 
         wayland.windowManager.hyprland = {
@@ -130,76 +126,6 @@
         services = {
           hyprpolkitagent = {
             enable = true;
-          };
-        };
-
-        systemd.user.services = {
-          awww-daemon = {
-            Unit = {
-              Description = "awww daemon";
-              PartOf = [ "graphical-session.target" ];
-              After = [ "graphical-session-pre.target" ];
-            };
-            Service = {
-              Type = "simple";
-              ExecStart = "${pkgs.awww}/bin/awww-daemon";
-              Restart = "on-failure";
-              RestartSec = 1;
-            };
-            Install = {
-              WantedBy = [ "graphical-session.target" ];
-            };
-          };
-
-          cliphist = {
-            Unit = {
-              Description = "Clipboard manager (cliphist)";
-              PartOf = [ "graphical-session.target" ];
-              After = [ "graphical-session.target" ];
-            };
-
-            Service = {
-              ExecStart = "${pkgs.wl-clipboard}/bin/wl-paste --watch ${pkgs.cliphist}/bin/cliphist store";
-              Restart = "on-failure";
-            };
-
-            Install = {
-              WantedBy = [ "graphical-session.target" ];
-            };
-          };
-
-          hyprsunset = {
-            Unit = {
-              Description = "Hyprsunset";
-              PartOf = [ "graphical-session.target" ];
-              After = [ "graphical-session.target" ];
-            };
-
-            Service = {
-              ExecStart = "${pkgs.hyprsunset}/bin/hyprsunset -t 4800";
-              Restart = "on-failure";
-            };
-
-            Install = {
-              WantedBy = [ "graphical-session.target" ];
-            };
-          };
-
-          waybar = {
-            Unit = {
-              Description = "Waybar";
-              PartOf = [ "graphical-session.target" ];
-              After = [ "graphical-session.target" ];
-            };
-
-            Service = {
-              ExecStart = "${pkgs.waybar}/bin/waybar";
-              Restart = "on-failure";
-            };
-
-            Install = {
-              WantedBy = [ "graphical-session.target" ];
-            };
           };
         };
 
