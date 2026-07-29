@@ -10,21 +10,21 @@ The primary goal of this repository is **reproducibility, extensibility, and lon
   - [Table of contents](#table-of-contents)
   - [Hosts](#hosts)
   - [Installation](#installation)
+    - [Before you start](#before-you-start)
     - [Option A — Clean install](#option-a--clean-install)
     - [Option B — Adding this config to an existing NixOS install](#option-b--adding-this-config-to-an-existing-nixos-install)
-  - [Quick usage](#quick-usage)
+    - [Post-installation notes](#post-installation-notes)
+  - [Default keybinds](#default-keybinds)
   - [Project structure](#project-structure)
   - [Den concepts](#den-concepts)
-  - [Conventions used in this repository](#conventions-used-in-this-repository)
   - [Common workflows](#common-workflows)
     - [Applying changes](#applying-changes)
     - [Adding a new user](#adding-a-new-user)
     - [Adding a new host](#adding-a-new-host)
     - [Adding a new aspect](#adding-a-new-aspect)
+    - [Swapping a default program](#swapping-a-default-program)
     - [Adding a new flake input](#adding-a-new-flake-input)
     - [Testing in a VM before applying on real hardware](#testing-in-a-vm-before-applying-on-real-hardware)
-  - [CI](#ci)
-  - [Troubleshooting](#troubleshooting)
   - [References](#references)
 
 ## Hosts
@@ -38,21 +38,43 @@ Primary user on both hosts: `caiocsx`.
 
 ## Installation
 
-This repository can be installed in two different ways, depending on whether you're starting from a blank disk or already have NixOS running.
+There are two ways to install this configuration, depending on whether you're starting from a blank disk or already have NixOS running. Both share the same first step.
+
+### Before you start
+
+Every host — and, if needed, every user — needs to already exist in the repository, declared and committed, **before** you can build or install it.
+
+1. **Host.** Pick a name for your host (e.g. `pad`, `station`, or something new) and prepare it by copying an existing host directory as a starting point:
+   ```bash
+   cp -r modules/hosts/pad modules/hosts/<host>
+   rm modules/hosts/<host>/_hardware-configuration.nix   # this gets generated later, not copied
+   ```
+   Adjust `modules/hosts/<host>/default.nix` for your machine (GPU driver, keyboard layout, etc). See [Adding a new host](#adding-a-new-host) for details.
+
+2. **User.** If you're reusing the existing `caiocsx` user, skip this step. If you need a new user, create it first — see [Adding a new user](#adding-a-new-user).
+
+3. **Declare both together** in `hosts.nix`:
+   ```nix
+   den.hosts.x86_64-linux.<host>.users.<user> = { };
+   ```
+
+Once this is done, follow whichever installation option applies to you below.
 
 ### Option A — Clean install
 
 Follow the full step-by-step script in this Gist:
 
-[NixOS Installation — Btrfs & dual-boot](https://gist.github.com/caiocsx/709e1a028f9c390b4aa24b45f2125f74)
+**[NixOS Installation Guide](https://gist.github.com/caiocsx/709e1a028f9c390b4aa24b45f2125f74)**
 
 It walks through, in order:
 
 0. Connecting to the internet (skip if using Ethernet).
-1. Partitioning the disk and creating the Btrfs subvolume layout (`@`, `@home`, ...).
-2. Mounting the subvolumes, plus the existing EFI partition if dual-booting alongside another OS (never format an EFI partition shared with another system).
-3. Cloning this repository into `/mnt/etc/nixos`, generating the hardware configuration with `nixos-generate-config --root /mnt`, and moving it into `modules/hosts/<host>/_hardware-configuration.nix`.
-4. Running `nixos-install --root /mnt --flake .#<host>`, setting the primary user's password with `passwd <user>` inside `nixos-enter`, then rebooting.
+1. Partitioning the disk, reusing the existing EFI partition if dual-booting alongside another OS.
+2. Formatting the root partition — Btrfs (with a `@`/`@home`/`@nix`/`@log` subvolume layout) or plain ext4, your choice.
+3. Mounting everything.
+4. *(Optional)* Cleaning up leftover boot files from a previous NixOS install sharing the same EFI partition.
+5. Cloning this repository into `/mnt/etc/nixos` and generating the hardware configuration with `nixos-generate-config --root /mnt`, which gets placed into `modules/hosts/<host>/_hardware-configuration.nix` — the file you already made room for in [Before you start](#before-you-start).
+6. Running `nixos-install --root /mnt --flake .#<host>`, setting the primary user's password with `passwd <user>` inside `nixos-enter`, then rebooting.
 
 > [!WARNING]
 > The disk partitioning and formatting commands in the guide are destructive. Double-check device names with `lsblk` before running any `mkfs`/`cfdisk` command.
@@ -75,36 +97,53 @@ git clone https://github.com/caiocsx/nixos.git ~/nixos
 cd ~/nixos
 ```
 
-Create a new host configuration by copying one of the existing host directories (or creating a new one), then generate and place the hardware configuration into it:
+Generate the hardware configuration for the machine you're already booted into (no `--root` needed, since you're not installing from a live ISO):
 
 ```bash
 sudo nixos-generate-config --show-hardware-config > modules/hosts/<host>/_hardware-configuration.nix
 ```
 
-Declare the host in `hosts.nix` — see [Adding a new host](#adding-a-new-host) for details — then build and activate:
+Then build and activate:
 
 ```bash
 git add -A
 nix run .#<host> -- switch
 ```
 
-Replace `<host>` with the name of your host (for example, `pad` or `station`).
+Replace `<host>` with the host name you prepared in [Before you start](#before-you-start) (for example, `pad` or `station`).
 
 > [!NOTE]
 > Nothing needs to be installed beforehand besides Nix/NixOS itself. `nix run` builds the activation application directly from the flake.
 
-## Quick usage
+### Post-installation notes
 
-After the first `switch`, the shell aliases (defined in `shell/zsh.nix`) cover the day-to-day workflow:
+A few things that are easy to be caught off guard by right after a fresh install:
 
-| Alias         | Real command                               | What it does                                             |
-| ------------- | ------------------------------------------ | -------------------------------------------------------- |
-| `nix-check`   | `nix flake check`                          | Validates the whole config without applying it           |
-| `nix-write`   | `nix run .#write-flake`                    | Regenerates `flake.nix` from `flake-file.inputs`         |
-| `nix-rebuild` | `nh os switch ~/nixos`                     | Builds and applies the configuration to the current host |
-| `nix-update`  | `nix flake update --flake ~/nixos`         | Updates all flake inputs                                 |
-| `nix-upgrade` | `nix flake update ... && nh os switch ...` | Updates inputs and applies right after                   |
-| `nix-clean`   | `nh clean all`                             | Cleans up old generations and runs garbage collection    |
+**Dual-boot may boot straight into the other OS**. Installing GRUB doesn't always reorder the motherboard's existing UEFI boot entries. If Windows (or another OS) was already first in the boot order, the firmware may keep booting it directly, skipping GRUB entirely, even though NixOS installed correctly. **To fix this**, move the **NixOS/GRUB** boot entry to the top of the boot order in your BIOS/UEFI settings.
+
+**Some apps need a first manual launch to fully apply their settings.** VSCodium and Zen Browser, in particular, may not reflect all declared personalization (extensions, settings) until you open them at least once after activation. This is expected — just launch them once after logging in for the first time.
+
+**Wallpaper starts empty.** The first login has no wallpaper set. Set one with `SUPER + SHIFT + W` (see [Default keybinds](#default-keybinds)) — the images bundled in `assets/wallpapers/` are available immediately.
+
+## Default keybinds
+
+| Keybind                | Action                    |
+| ---------------------- | ------------------------- |
+| `SUPER + Q`            | Open terminal             |
+| `SUPER + C `           | Close Window              |
+| `SUPER + (1-9)`        | Move to workspace         |
+| `SUPER + F`            | Open browser              |
+| `SUPER + D`            | Open editor               |
+| `SUPER + E`            | Open file manager         |
+| `SUPER + R`            | App launcher (rofi)       |
+| `SUPER + L`            | Lock screen               |
+| `SUPER + ESCAPE`       | Power menu                |
+| `SUPER + A`            | Toggle notification center|
+| `SUPER + N`            | Network manager           |
+| `SUPER + SHIFT + W`    | Wallpaper picker          |
+| `SUPER + SHIFT + V`    | Clipboard manager         |
+
+`SUPER + F` / `D` / `E` open whatever is currently set as `$BROWSER` / `$EDITOR` / `$FILE_MANAGER` — see [Swapping a default program](#swapping-a-default-program) to change them.
 
 ## Project structure
 
@@ -168,11 +207,6 @@ Main concepts used in this repo:
 - **`provides.to-users` / `provides.to-hosts`** — how a host and a user exchange configuration without direct coupling (e.g. the `pad` host provides monitor-specific config to the user via `provides.to-users.homeManager`).
 - **`den.batteries.*`** — ready-made utilities from Den itself (`define-user`, `primary-user`, `user-shell`, etc).
 
-## Conventions used in this repository
-
-- **`lib.mkDefault`** on personal opinion values that make sense to vary per host/fork (timezone, language) — allows simple overriding without editing the shared file.
-- **`One aspect per feature, not necessarily per package`**: Programs that naturally belong together (e.g. CLI utilities) may share the same aspect, while applications with substantial configuration should have their own.
-
 ## Common workflows
 
 ### Applying changes
@@ -183,7 +217,16 @@ nix flake check                   # validate before applying
 nix run .#<host> -- switch        # apply on the current host
 ```
 
-Every workflow below ends with this same sequence.
+Every workflow below ends with this same sequence. Once the config is installed, a handful of shell aliases (defined in `shell/zsh.nix`) shorten this for daily use:
+
+| Alias         | Real command                               | What it does                                               |
+| ------------- | ------------------------------------------ | ---------------------------------------------------------- |
+| `nix-check`   | `nix flake check`                          | Validates the whole config without applying it             |
+| `nix-rebuild` | `nh os switch ~/nixos`                     | Builds and applies the configuration to the current host   |
+| `nix-update`  | `nix flake update --flake ~/nixos`         | Updates all flake inputs                                   |
+| `nix-upgrade` | `nix flake update ... && nh os switch ...` | Updates inputs and applies right after                     |
+| `nix-clean`   | `nh clean all`                             | Cleans up old generations and runs garbage collection      |
+| `nix-write`   | `nix run .#write-flake`                    | Regenerates `flake.nix` from `flake-file.inputs`           |
 
 ### Adding a new user
 
@@ -206,6 +249,17 @@ Every workflow below ends with this same sequence.
 3. Include the aspect wherever it makes sense — in `users/<user>.nix` (personal use) or in `hosts/<host>/default.nix` (host-specific).
 4. [Apply the changes](#applying-changes).
 
+### Swapping a default program
+
+Switching to a different browser, editor, file manager, or similar is just adding a new aspect and retiring the old one — but a few things are easy to forget along the way:
+
+1. Create the new aspect (e.g. `programs/firefox.nix`, `programs/zed.nix`) following the pattern of an existing one in `programs/`.
+2. Update `xdg.mimeApps.defaultApplications` — both adding the new program's entries and removing the old program's, wherever they were declared.
+3. Update any relevant `home.sessionVariables` (`BROWSER`, `EDITOR`, `FILE_MANAGER`, `TERMINAL`, etc.) to point at the new program.
+4. If the old program left behind unwanted `.desktop` entries you no longer want showing up in the launcher, remove them or override them with `NoDisplay=true` via `xdg.dataFile`.
+5. Swap the aspect in `users/<user>.nix` — remove the old one from `includes`, add the new one.
+6. [Apply the changes](#applying-changes).
+
 ### Adding a new flake input
 
 `flake.nix` is **generated automatically**, do not edit manually:
@@ -226,33 +280,7 @@ nix run .#vm-<host>
 
 Recommended for high-risk changes (drivers, bootloader, Hyprland). For small, safe changes, `nix flake check` followed directly by [applying the changes](#applying-changes) is enough.
 
-## CI
-
-`.github/workflows/test.yml` runs `nix flake check` on every push/PR, validating that every `nixosConfigurations` evaluates without errors — without needing real hardware. This catches most typos, renamed options, and broken references before trying to apply on a real machine.
-
-## Troubleshooting
-
-**`error: attribute 'x' missing`**
-A new file wasn't `git add`-ed. Flakes only evaluate files tracked by git.
-
-**`error: infinite recursion encountered`** (usually citing `homeManager@something:anon-N`)
-A module is re-declaring `inputs` (or another value already available via closure) as an argument of an inner function, instead of capturing it at the outer level of the file. Always capture `{ inputs, ... }:` in the outermost function and reference it by closure from there down.
-
-**`Refusing to evaluate package '...' because it is marked as insecure`**
-Add it to the `nixpkgs.config.permittedInsecurePackages` list in `core/nixpkgs.nix`.
-
-**`nix run .#<something>` complains that the output doesn't exist**
-
-```bash
-nix flake show
-```
-
-Confirms the exact name of the available app — switch apps are named after the **hostname** (`pad`, `station`), not the username.
-
 ## References
 
 - [Den — official documentation](https://den.denful.dev)
-- [Dendrix — repository of reusable Den aspects](https://dendrix.denful.dev)
-- [home-manager — manual](https://nix-community.github.io/home-manager/)
-- [NixOS — manual](https://nixos.org/manual/nixos/stable/)
 - [search.nixos.org](https://search.nixos.org) — package and option search (NixOS + home-manager)
