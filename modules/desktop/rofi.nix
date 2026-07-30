@@ -4,9 +4,6 @@
     { config, pkgs, ... }:
 
     let
-      # ===================================================
-      #                       COLORS
-      # ===================================================
       colors = {
         background = "#2A2A2A";
         background-alt = "#383838";
@@ -17,9 +14,6 @@
         accent-urgent = "#FF7A84";
       };
 
-      # ===================================================
-      #                  ROFI THEMES
-      # ===================================================
       confirmTheme = pkgs.writeText "rofi-confirm.rasi" ''
         * {
           background: ${colors.background};
@@ -647,9 +641,6 @@
         }
       '';
 
-      # ===================================================
-      #                     SCRIPTS
-      # ===================================================
       rofiPowermenu = pkgs.writeShellApplication {
         name = "rofi-power-menu";
         runtimeInputs = with pkgs; [
@@ -1500,11 +1491,7 @@
           }
 
           get_thumbnail_key() {
-            local wallpaper_path="$1"
-            local wallpaper_mtime wallpaper_size
-            wallpaper_mtime=$(stat -c '%Y' -- "$wallpaper_path")
-            wallpaper_size=$(stat -c '%s' -- "$wallpaper_path")
-            printf '%s|%s|%s' "$wallpaper_path" "$wallpaper_mtime" "$wallpaper_size" | sha256sum | awk '{print $1}'
+            printf '%s' "$1" | sha256sum | awk '{print $1}'
           }
 
           get_thumbnail_path() {
@@ -1544,6 +1531,8 @@
                 active_jobs=$((active_jobs - 1))
               fi
             done
+
+            wait
           }
 
           create_lockscreen_wallpaper() {
@@ -1587,8 +1576,6 @@
             create_lockscreen_wallpaper "$wallpaper_path"
 
             awww img "$wallpaper_path" --transition-type any --transition-fps 60 --transition-duration 0.5
-
-            notify_info "Wallpaper changed" "Set to: $(basename "$wallpaper_path")" "$LOCKSCREEN_WALLPAPER"
           }
 
           get_current_index() {
@@ -1639,7 +1626,18 @@
 
           menu_select_wall() {
             init_wallpapers
-            prewarm_thumbnails >/dev/null 2>&1 &
+
+            local missing_count=0
+            for wallpaper in "''${WALLPAPER_LIST[@]}"; do
+              if [ ! -s "$(get_thumbnail_path "$wallpaper")" ]; then
+                missing_count=$((missing_count + 1))
+              fi
+            done
+
+            if [ "$missing_count" -gt 0 ]; then
+              notify_info "Generating thumbnails" "Generating thumbnails for $missing_count new image(s). Please wait..."
+              prewarm_thumbnails
+            fi
 
             local rofi_input_file
             rofi_input_file=$(mktemp)
