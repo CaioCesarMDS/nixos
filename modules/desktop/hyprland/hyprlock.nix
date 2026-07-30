@@ -53,121 +53,94 @@
         '';
       };
 
-      hyprlockLayout = pkgs.writeShellApplication {
-        name = "hyprlock-layout";
+      hyprlockStatus = pkgs.writeShellApplication {
+        name = "hyprlock-status";
         runtimeInputs = with pkgs; [
           coreutils
           jq
+          networkmanager
+          iw
+          gawk
+          procps
         ];
         text = ''
-          output=""
-
-          check_layout() {
-            data=$(hyprctl devices -j 2>/dev/null)
-
-            layout=$(echo "$data" | jq -r '.keyboards[] | select(.main==true) | .layout')
-            variant=$(echo "$data" | jq -r '.keyboards[] | select(.main==true) | .variant')
+          get_layout() {
+            local data layout variant
+            data=$(hyprctl devices -j 2>/dev/null || true)
+            layout=$(echo "$data" | jq -r '.keyboards[] | select(.main==true) | .layout' 2>/dev/null || true)
+            variant=$(echo "$data" | jq -r '.keyboards[] | select(.main==true) | .variant' 2>/dev/null || true)
 
             layout=$(echo "$layout" | tr '[:lower:]' '[:upper:]')
             variant=$(echo "$variant" | tr '[:lower:]' '[:upper:]')
 
             if [[ -n "$layout" && "$layout" != "null" ]]; then
-              output+="$layout"
-
               if [[ -n "$variant" && "$variant" != "null" ]]; then
-                output+="/$variant"
+                echo "$layout/$variant "
+              else
+                echo "$layout "
               fi
             else
-              output+="UNK"
+              echo "UNK "
             fi
           }
 
-          check_layout
-          echo "$output"
-        '';
-      };
-
-      hyprlockNetwork = pkgs.writeShellApplication {
-        name = "hyprlock-network";
-        runtimeInputs = with pkgs; [
-          coreutils
-          networkmanager
-          iw
-          gawk
-        ];
-
-        text = ''
-          output=""
-
-          check_network() {
-            local status iface signal icon
-
-            status="$(nmcli -t -f STATE general)"
+          get_network() {
+            local status iface signal icon eth_connected
+            status="$(nmcli -t -f STATE general 2>/dev/null || true)"
 
             case "$status" in
               connected)
-                iface="$(nmcli -t -f DEVICE,TYPE device status | awk -F: '$2=="wifi"{print $1; exit}')"
+                eth_connected="$(nmcli -t -f TYPE,STATE device status 2>/dev/null | awk -F: '$1=="ethernet" && $2=="connected" {print "yes"; exit}')"
 
-                if [[ -n "$iface" ]]; then
-                  signal="$(iw dev "$iface" link | awk '/signal:/ {print $2}')"
-
-                  case "$signal" in
-                    -[0-5][0-9]|-6[0-4]) icon="󰤨" ;;
-                    -6[5-9]|-7[0-4])     icon="󰤥" ;;
-                    -7[5-9]|-8[0-4])     icon="󰤢" ;;
-                    -8[5-9]|-9[0-4])     icon="󰤟" ;;
-                    *)                   icon="󰤯" ;;
-                  esac
-
-                  output="$icon"
+                if [[ "$eth_connected" == "yes" ]]; then
+                  echo "󰈀"
                 else
-                  output="󰈀"
+                  iface="$(nmcli -t -f DEVICE,TYPE,STATE device status 2>/dev/null | awk -F: '$2=="wifi" && $3=="connected"{print $1; exit}')"
+
+                  if [[ -n "$iface" ]]; then
+                    signal="$(iw dev "$iface" link 2>/dev/null | awk '/signal:/ {print $2}')"
+
+                    case "$signal" in
+                      -[0-5][0-9]|-6[0-4]) icon="󰤨" ;;
+                      -6[5-9]|-7[0-4])     icon="󰤥" ;;
+                      -7[5-9]|-8[0-4])     icon="󰤢" ;;
+                      -8[5-9]|-9[0-4])     icon="󰤟" ;;
+                      *)                   icon="󰤯" ;;
+                    esac
+
+                    echo "$icon"
+                  else
+                    echo "󰈀"
+                  fi
                 fi
                 ;;
-
               connecting)
-                output="󱍸"
+                echo "󱍸"
                 ;;
               *)
-                output="󰤮"
+                echo "󰤮"
                 ;;
             esac
           }
 
-          check_network
-          echo "$output"
-        '';
-      };
+          get_battery() {
+            local BAT_PATH="" status capacity icon
 
-      hyprlockBattery = pkgs.writeShellApplication {
-        name = "hyprlock-battery";
-        runtimeInputs = with pkgs; [
-          coreutils
-          procps
-        ];
-        text = ''
-          output=""
-
-          check_battery() {
-            local BAT_PATH=""
-            local status capacity icon
-
-            for BAT_PATH in /sys/class/power_supply/BAT*; do
-              if [[ -d "$BAT_PATH" ]]; then
+            for path in /sys/class/power_supply/BAT*; do
+              if [[ -d "$path" ]]; then
+                BAT_PATH="$path"
                 break
               fi
-              BAT_PATH=""
             done
 
-            if [[ -z "$BAT_PATH" || ! -d "$BAT_PATH" ]]; then
-              output+=" 100%"
+            if [[ -z "$BAT_PATH" ]]; then
               return
             fi
 
-            status="$(cat "$BAT_PATH/status")"
-            capacity="$(cat "$BAT_PATH/capacity")"
+            status="$(cat "$BAT_PATH/status" 2>/dev/null || true)"
+            capacity="$(cat "$BAT_PATH/capacity" 2>/dev/null || true)"
 
-            case $((capacity / 9)) in
+            case $((capacity / 10)) in
               0) icon="󰂎" ;;
               1) icon="󰁺" ;;
               2) icon="󰁻" ;;
@@ -177,19 +150,27 @@
               6) icon="󰁿" ;;
               7) icon="󰂀" ;;
               8) icon="󰂁" ;;
-              9 | 10) icon="󰂂" ;;
+              9) icon="󰂂" ;;
+              10) icon="󰁹" ;;
               *) icon="󰁹" ;;
             esac
 
             case "$status" in
-              Charging) output+="󰂄 $capacity%" ;;
-              Full) output+="󰁹 $capacity%" ;;
-              Discharging) output+="$icon $capacity%" ;;
-              *) output+=" $capacity%" ;;
+              "Charging")          echo "󰂄 $capacity%" ;;
+              "Full")              echo "󰁹 $capacity%" ;;
+              *)                   echo "$icon $capacity%" ;;
             esac
           }
 
-          check_battery
+          layout_out="$(get_layout)"
+          network_out="$(get_network)"
+          battery_out="$(get_battery)"
+
+          output="$layout_out    $network_out"
+          if [[ -n "$battery_out" ]]; then
+            output="$output    $battery_out"
+          fi
+
           echo "$output"
         '';
       };
@@ -224,15 +205,13 @@
     {
       home.packages = [
         hyprlockSong
-        hyprlockLayout
-        hyprlockNetwork
-        hyprlockBattery
+        hyprlockStatus
         hyprlockLock
       ];
 
       programs.hyprlock =
         let
-          font = "JetBrainsMono Nerd Font Mono";
+          font = "JetBrainsMono Nerd Font Propo";
           fontBold = "JetBrainsMono Nerd Font Mono Bold";
 
           fg = "rgba(229, 229, 229, 1)";
@@ -267,39 +246,11 @@
               }
               {
                 monitor = "";
-                text = "cmd[update:1000] hyprlock-layout";
-                font_size = 10;
-                font_family = font;
-                position = "-150, 520";
-                halign = "right";
-                valign = "center";
-              }
-              {
-                monitor = "";
-                text = " ";
-                font_size = 16;
-                font_family = font;
-                position = "-130, 520";
-                halign = "right";
-                valign = "center";
-              }
-              {
-                monitor = "";
-                text = "cmd[update:1000] hyprlock-network";
-                color = fg;
-                font_size = 18;
-                font_family = font;
-                position = "-90, 520";
-                halign = "right";
-                valign = "center";
-              }
-              {
-                monitor = "";
-                text = "cmd[update:1000] hyprlock-battery";
+                text = "cmd[update:1000] hyprlock-status";
                 color = fg;
                 font_size = 11;
                 font_family = font;
-                position = "-10, 520";
+                position = "-15, 520";
                 halign = "right";
                 valign = "center";
               }
