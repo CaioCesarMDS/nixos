@@ -2,13 +2,7 @@
 let
   nixpkgsConfig = {
     config = {
-      allowUnfreePredicate =
-        pkg:
-        builtins.elem (lib.getName pkg) [
-          "spotify"
-          "obsidian"
-        ];
-
+      allowUnfree = true;
       nvidia.acceptLicense = true;
     };
     overlays = [ inputs.nix-vscode-extensions.overlays.default ];
