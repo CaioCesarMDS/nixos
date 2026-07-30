@@ -46,12 +46,6 @@
           (mkEnv "XDG_CURRENT_DESKTOP" "Hyprland")
           (mkEnv "XDG_SESSION_TYPE" "wayland")
           (mkEnv "XDG_SESSION_DESKTOP" "Hyprland")
-
-          # --- Cursor ---
-          (mkEnv "HYPRCURSOR_THEME" "Bibata-Modern-Ice")
-          (mkEnv "HYPRCURSOR_SIZE" "20")
-          (mkEnv "XCURSOR_THEME" "Bibata-Modern-Ice")
-          (mkEnv "XCURSOR_SIZE" "20")
         ];
 
         terminal = "$TERMINAL";
@@ -110,7 +104,6 @@
         home.packages = with pkgs; [
           hyprshot
           hyprpicker
-          hyprcursor
         ];
 
         wayland.windowManager.hyprland = {
@@ -379,12 +372,22 @@
               };
               float = true;
             }
+
             {
               match = {
-                class = "^(${browser})$";
-                title = ".*accounts.*";
+                class = "^(Steam)$";
+                title = ".*Steam library folder.*";
               };
               float = true;
+              center = true;
+            }
+            {
+              match = {
+                class = "^(Steam)$";
+                title = "^(Friends List)$";
+              };
+              float = true;
+              center = true;
             }
 
             {
@@ -457,13 +460,13 @@
 
             # --- Screenshots (Hyprshot) ---
             (bind "SUPER + PRINT" (
-              dsp.exec "hyprshot -m window -f $(date +%Y-%m-%d_%H-%M-%S).png -o ~/Pictures/screenshots"
+              dsp.exec "hyprshot -m window -f $(date +%Y-%m-%d_%H-%M-%S).png -o ~/Pictures/Screenshots"
             ))
             (bind "SUPER + SHIFT + PRINT" (
-              dsp.exec "hyprshot -m region -f $(date +%Y-%m-%d_%H-%M-%S).png -o ~/Pictures/screenshots"
+              dsp.exec "hyprshot -m region -f $(date +%Y-%m-%d_%H-%M-%S).png -o ~/Pictures/Screenshots"
             ))
             (bind "SUPER + CTRL + PRINT" (
-              dsp.exec "hyprshot -m output -f $(date +%Y-%m-%d_%H-%M-%S).png -o ~/Pictures/screenshots"
+              dsp.exec "hyprshot -m output -f $(date +%Y-%m-%d_%H-%M-%S).png -o ~/Pictures/Screenshots"
             ))
 
             # --- Zoom ---
