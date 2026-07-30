@@ -94,7 +94,7 @@
                 }
                 {
                   label = "";
-                  command = "swaync-client -cp && hyprshot -m region -f $(date +%Y-%m-%d_%H-%M-%S).jpg -o ~/Pictures/screenshots";
+                  command = "swaync-client -cp && hyprshot -m region -f $(date +%Y-%m-%d_%H-%M-%S).jpg -o ~/Pictures/Screenshots";
                 }
                 {
                   label = "";
@@ -141,9 +141,8 @@
 
           .notification {
             background-color: @background;
-            border-radius: 10px;
-            padding: 12px; /* Aumentado de 6px para 12px */
-            margin: 4px 0px;
+            border-radius: 8px;
+            padding: 6px;
           }
 
           .notification:hover {
