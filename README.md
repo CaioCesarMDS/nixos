@@ -1,3 +1,11 @@
+<div align="center">
+  
+![GitHub last commit](https://img.shields.io/github/last-commit/caiocsx/nixos?style=for-the-badge&)
+![GitHub Repo stars](https://img.shields.io/github/stars/caiocsx/nixos?style=for-the-badge&)
+![GitHub repo size](https://img.shields.io/github/repo-size/caiocsx/nixos?style=for-the-badge&)
+
+</div>
+
 # nixos
 
 My personal NixOS configuration, built with [flakes](https://nixos.wiki/wiki/Flakes), [home-manager](https://github.com/nix-community/home-manager), and the [Den](https://den.denful.dev) framework, based on the [default](https://den.denful.dev/tutorials/default/) template.
