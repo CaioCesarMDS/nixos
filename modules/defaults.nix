@@ -12,7 +12,6 @@
     den.aspects.security
     den.aspects.locale
     den.aspects.time
-    den.aspects.dbus
     den.aspects.system-defaults
     den.aspects.networking
     den.aspects.bluetooth
