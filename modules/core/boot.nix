@@ -1,17 +1,17 @@
 { ... }:
 {
   den.aspects.boot.nixos =
-    { pkgs, ... }:
+    { lib, pkgs, ... }:
     {
       boot = {
-        kernelPackages = pkgs.linuxPackages_zen;
+        kernelPackages = lib.mkDefault pkgs.linuxPackages_zen;
         loader = {
-          timeout = 45;
+          timeout = lib.mkDefault 30;
           grub = {
             enable = true;
             efiSupport = true;
             device = "nodev";
-            useOSProber = true;
+            useOSProber = lib.mkDefault true;
             configurationLimit = 10;
           };
           efi = {
@@ -28,7 +28,6 @@
         tmp = {
           cleanOnBoot = true;
           useTmpfs = true;
-          tmpfsSize = "20%";
         };
       };
     };
