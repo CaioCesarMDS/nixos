@@ -2,6 +2,7 @@
 {
   den.aspects.caiocsx = {
     includes = [
+      den.batteries.hostname
       den.batteries.define-user
       den.batteries.primary-user
       (den.batteries.user-shell "zsh")
@@ -36,7 +37,7 @@
       den.aspects.imv
       den.aspects.mpv
       den.aspects.zathura
-      den.aspects.qbittorrent
+      # den.aspects.qbittorrent
       den.aspects.spicetify
       den.aspects.vesktop
       den.aspects.zen-browser
@@ -45,11 +46,7 @@
     user =
       { ... }:
       {
-        isNormalUser = true;
-        # initialPassword = "123"; For tests in the VM
         extraGroups = [
-          "wheel"
-          "networkmanager"
           "docker"
         ];
       };
@@ -60,11 +57,10 @@
         home.packages = with pkgs; [
           proton-vpn
           proton-pass
-          proton-authenticator
           protonmail-desktop
-          gimp
+          # gimp
           obsidian
-          bruno
+          # bruno
           onlyoffice-desktopeditors
         ];
 
