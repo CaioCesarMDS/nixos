@@ -1,21 +1,11 @@
 { ... }:
 {
   den.aspects.waybar.homeManager =
-    { pkgs, ... }:
+    { pkgs, user, ... }:
+    let
+      citySafeName = builtins.replaceStrings [ " " ] [ "+" ] user.city;
+    in
     {
-      systemd.user.services.waybar = {
-        Unit = {
-          Description = "waybar - Status Bar";
-          PartOf = [ "graphical-session.target" ];
-          After = [ "graphical-session.target" ];
-        };
-        Service = {
-          ExecStart = "${pkgs.waybar}/bin/waybar";
-          Restart = "on-failure";
-        };
-        Install.WantedBy = [ "graphical-session.target" ];
-      };
-
       programs.waybar = {
         enable = true;
         settings.main = {
@@ -130,11 +120,17 @@
           "group/group-right" = {
             "orientation" = "inherit";
             "modules" = [
+              "custom/weather"
               "pulseaudio#microphone"
               "group/audio"
               "group/brightness"
               "group/group-system"
             ];
+          };
+          "custom/weather" = {
+            "format" = "{}";
+            "exec" = "curl -s 'wttr.in/${citySafeName}?format=%c%t'";
+            "interval" = 600;
           };
           "pulseaudio#microphone" = {
             "format" = "{format_source}";
@@ -374,12 +370,14 @@
           #clock,
           #privacy,
           #tray,
+          #custom-weather,
           #pulseaudio.microphone,
           #pulseaudio,
           #backlight,
           #group-system {
             min-width: 25px;
             padding: 0 10px;
+            margin: 0 4px;
             color: @foreground;
             background-color: @background;
             border-radius: 8px;
@@ -388,6 +386,7 @@
           #custom-notification:hover,
           #clock:hover,
           #privacy:hover,
+          #custom-weather:hover,
           #pulseaudio.microphone:hover,
           #pulseaudio:hover,
           #backlight:hover,
@@ -399,13 +398,6 @@
           }
 
           /* Modules Left */
-          #custom-notification,
-          #clock,
-          #privacy,
-          #tray {
-            margin: 0 4px;
-          }
-
           #clock {
             padding: 0 15px;
           }
@@ -457,26 +449,6 @@
           }
 
           /* Modules Right */
-
-          /* Group leaders */
-          #pulseaudio.microphone,
-          #pulseaudio,
-          #backlight,
-          #group-system {
-            margin: 0 4px;
-          }
-
-          #pulseaudio.microphone,
-          #pulseaudio,
-          #backlight,
-          #bluetooth,
-          #network,
-          #battery {
-            padding: 0 8px;
-            color: @foreground;
-            background-color: @background;
-          }
-
           #pulseaudio-slider,
           #backlight-slider {
             background-color: @background;
@@ -504,6 +476,12 @@
             min-height: 8px;
             border-radius: 8px;
             background: @foreground;
+          }
+
+          #bluetooth,
+          #network,
+          #battery {
+            padding: 0 8px;
           }
 
           #battery.charging.warning,
@@ -544,6 +522,18 @@
             color: @accent-urgent;
           }
         '';
+      };
+      systemd.user.services.waybar = {
+        Unit = {
+          Description = "waybar - Status Bar";
+          PartOf = [ "graphical-session.target" ];
+          After = [ "graphical-session.target" ];
+        };
+        Service = {
+          ExecStart = "${pkgs.waybar}/bin/waybar";
+          Restart = "on-failure";
+        };
+        Install.WantedBy = [ "graphical-session.target" ];
       };
     };
 }
