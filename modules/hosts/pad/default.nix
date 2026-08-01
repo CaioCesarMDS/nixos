@@ -5,22 +5,39 @@
       {
         imports = [ ./_hardware-configuration.nix ];
 
-        networking.hostName = "pad";
-        boot.kernelParams = [
-          "radeon.si_support=0"
-          "amdgpu.si_support=1"
-        ];
-        hardware.graphics.extraPackages = with pkgs; [
-          libva
-          libva-utils
-          libvdpau-va-gl
-        ];
-        services.xserver.videoDrivers = [ "amdgpu" ];
-        services.xserver.xkb = {
-          layout = "br";
-          variant = "";
+        boot = {
+          kernelParams = [
+            "radeon.si_support=0"
+            "amdgpu.si_support=1"
+          ];
         };
-        services.power-profiles-daemon.enable = true;
+        hardware = {
+          graphics = {
+            enable = true;
+            extraPackages = with pkgs; [
+              libva
+              libva-utils
+              libvdpau-va-gl
+            ];
+          };
+        };
+        services = {
+          xserver = {
+            videoDrivers = [ "amdgpu" ];
+            xkb = {
+              layout = "br";
+              variant = "";
+            };
+          };
+          power-profiles-daemon.enable = true;
+        };
+
+        # time.timeZone = "America/Sao_Paulo";          # uncomment to override the default (America/Recife)
+        # i18n.defaultLocale = "pt_BR.UTF-8";           # uncomment to override the default (en_US.UTF-8)
+        # boot.kernelPackages = pkgs.linuxPackages;     # uncomment to override the default (linuxPackages_zen)
+        # boot.loader.timeout = 10;                     # uncomment to override the default (30)
+        # boot.loader.grub.useOSProber = false;         # uncomment to override the default (true)
+        # documentation.nixos.enable = true;            # uncomment to override the default (false)
       };
 
     provides.to-users.homeManager =

@@ -12,26 +12,29 @@
       {
         imports = [ ./_hardware-configuration.nix ];
 
-        networking.hostName = "station";
-        boot.kernelParams = [
-          "nvidia-drm.modeset=1"
-          "nvidia_drm.fbdev=1"
-        ];
-        boot.kernelModules = [
-          "nvidia"
-          "nvidia_modeset"
-          "nvidia_uvm"
-          "nvidia_drm"
-        ];
+        boot = {
+          kernelModules = [
+            "nvidia"
+            "nvidia_modeset"
+            "nvidia_uvm"
+            "nvidia_drm"
+          ];
+          kernelParams = [
+            "nvidia-drm.modeset=1"
+            "nvidia_drm.fbdev=1"
+          ];
+        };
         hardware = {
           nvidia = {
+            enabled = true;
             open = true;
             modesetting.enable = true;
-            powerManagement.enable = false;
-            nvidiaSettings = true;
+            powerManagement.enable = true;
+            nvidiaSettings = false;
             package = config.boot.kernelPackages.nvidiaPackages.latest;
           };
           graphics = {
+            enable = true;
             extraPackages = with pkgs; [
               nvidia-vaapi-driver
               libva-vdpau-driver
@@ -39,13 +42,26 @@
             ];
           };
         };
-        services.xserver.videoDrivers = [ "nvidia" ];
-        services.xserver.xkb = {
-          layout = "us";
-          variant = "intl";
+        services = {
+          xserver = {
+            videoDrivers = [ "nvidia" ];
+            xkb = {
+              layout = "us";
+              variant = "intl";
+            };
+          };
+
+          ollama.package = pkgs.ollama-cuda;
         };
-        services.ollama.package = pkgs.ollama-cuda;
-        users.users.caiocsx.extraGroups = [ "libvirtd" ];
+
+        # time.timeZone = "America/Sao_Paulo";          # uncomment to override the default (America/Recife)
+        # i18n.defaultLocale = "pt_BR.UTF-8";           # uncomment to override the default (en_US.UTF-8)
+        # boot.kernelPackages = pkgs.linuxPackages;     # uncomment to override the default (linuxPackages_zen)
+        # boot.loader.timeout = 10;                     # uncomment to override the default (30)
+        # boot.loader.grub.useOSProber = false;         # uncomment to override the default (true)
+        # documentation.nixos.enable = true;            # uncomment to override the default (false)
+
+        # users.users.caiocsx.extraGroups = [ "libvirtd" ];
       };
 
     provides.to-users.homeManager =
