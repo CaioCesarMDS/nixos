@@ -18,7 +18,7 @@
       den.aspects.swaync
       den.aspects.waybar
       den.aspects.clipboard
-      den.aspects.theme
+      den.aspects.stylix
       den.aspects.xdg
       den.aspects.wallpapers
 
@@ -37,7 +37,7 @@
       den.aspects.imv
       den.aspects.mpv
       den.aspects.zathura
-      # den.aspects.qbittorrent
+      den.aspects.qbittorrent
       den.aspects.spicetify
       den.aspects.vesktop
       den.aspects.zen-browser

@@ -2,18 +2,16 @@
 
 {
   den.aspects.vscodium.homeManager =
-    { pkgs, ... }:
+    { pkgs, ui, ... }:
 
     let
       extensions = with pkgs.vscode-marketplace; [
-        miguelsolorio.min-theme
         pkief.material-icon-theme
         mkhl.direnv
       ];
 
       commonSettings = {
         "workbench.iconTheme" = "material-icon-theme";
-        "workbench.colorTheme" = "Min Dark";
         "workbench.startupEditor" = "none";
         "workbench.layoutControl.enabled" = false;
         "workbench.editor.labelFormat" = "short";
@@ -23,8 +21,6 @@
         "breadcrumbs.enabled" = false;
         "workbench.list.smoothScrolling" = true;
 
-        "editor.fontFamily" = "JetBrainsMono Nerd Font";
-        "editor.fontSize" = 15;
         "editor.lineHeight" = 1.8;
         "editor.fontLigatures" = true;
         "editor.padding.top" = 20;
@@ -76,8 +72,7 @@
           ".gitignore" = ".gitattributes; .gitmodules";
         };
 
-        "terminal.integrated.fontFamily" = "JetBrainsMono Nerd Font Mono";
-        "terminal.integrated.fontSize" = 14;
+        "terminal.integrated.fontFamily" = "${ui.font.mono}";
         "terminal.integrated.fontLigatures.enabled" = true;
         "terminal.integrated.cursorBlinking" = true;
 

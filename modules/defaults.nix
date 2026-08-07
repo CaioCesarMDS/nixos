@@ -16,6 +16,5 @@
     den.aspects.networking
     den.aspects.bluetooth
     den.aspects.core-packages
-    den.aspects.fonts
   ];
 }

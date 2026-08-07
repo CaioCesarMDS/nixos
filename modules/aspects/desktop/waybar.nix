@@ -1,7 +1,13 @@
 { ... }:
 {
   den.aspects.waybar.homeManager =
-    { pkgs, user, ... }:
+    {
+      config,
+      pkgs,
+      ui,
+      user,
+      ...
+    }:
     let
       citySafeName = builtins.replaceStrings [ " " ] [ "+" ] user.city;
     in
@@ -57,11 +63,11 @@
               "weeks-pos" = "right";
               "on-scroll" = 1;
               "format" = {
-                "months" = "<span color='#B392F0'><b>{}</b></span>";
-                "days" = "<span color='#CCCCCC'><b>{}</b></span>";
-                "weeks" = "<span color='#79B8FF'><b>W{}</b></span>";
-                "weekdays" = "<span color='#A0A0A0'><b>{}</b></span>";
-                "today" = "<span color='#FF7A84'><b><u>{}</u></b></span>";
+                "months" = "<span color='${ui.colors.blue}'><b>{}</b></span>";
+                "days" = "<span color='${ui.colors.fg}'><b>{}</b></span>";
+                "weeks" = "<span color='${ui.colors.cyan}'><b>W{}</b></span>";
+                "weekdays" = "<span color='${ui.colors.muted}'><b>{}</b></span>";
+                "today" = "<span color='${ui.colors.red}'><b><u>{}</u></b></span>";
               };
             };
             "actions" = {
@@ -130,7 +136,7 @@
           "custom/weather" = {
             "format" = "{}";
             "exec" = "curl -s 'wttr.in/${citySafeName}?format=%c%t'";
-            "interval" = 600;
+            "interval" = 300;
           };
           "pulseaudio#microphone" = {
             "format" = "{format_source}";
@@ -306,50 +312,35 @@
         };
         # --- STYLE ---
         style = ''
-          @define-color background #2A2A2A;
-          @define-color background-alt #383838;
-          @define-color foreground #CCCCCC;
-          @define-color foreground-muted #A0A0A0;
-          @define-color accent-primary #B392F0;
-          @define-color accent-active  #79B8FF;
-          @define-color accent-urgent  #FF7A84;
-          @define-color accent-warning #FFD866;
-          @define-color accent-success #7EE787;
+          @define-color bg        alpha(${ui.colors.bg}, ${toString ui.opacity.popups});
+          @define-color surface   alpha(${ui.colors.surface}, ${toString ui.opacity.popups});
+          @define-color fg        ${ui.colors.fg};
+          @define-color muted     ${ui.colors.muted};
+          @define-color cyan      ${ui.colors.cyan};
+          @define-color blue      ${ui.colors.blue};
+          @define-color green     ${ui.colors.green};
+          @define-color magenta   ${ui.colors.magenta};
+          @define-color orange    ${ui.colors.orange};
+          @define-color purple   ${ui.colors.purple};
+          @define-color red       ${ui.colors.red};
+          @define-color yellow    ${ui.colors.yellow};
 
-          @keyframes blink-success {
+          @keyframes battery-blink {
             from {
-              color: @foreground;
+              opacity: 1;
             }
             to {
-              color: @accent-success;
-            }
-          }
-
-          @keyframes blink-warning {
-            from {
-              color: @foreground;
-            }
-            to {
-              color: @accent-warning;
-            }
-          }
-
-          @keyframes blink-urgent {
-            from {
-              color: @foreground;
-            }
-            to {
-              color: @accent-urgent;
+              opacity: 0.3;
             }
           }
 
           * {
             all: unset;
-            border: none;
             box-shadow: none;
+            border: none;
             min-height: 25px;
             font-size: 1rem;
-            font-family: 'JetBrainsMono Nerd Font Propo';
+            font-family: '${ui.font.propo}';
           }
 
           window#waybar {
@@ -357,13 +348,13 @@
           }
 
           tooltip {
-            background: @background;
-            border: 2px solid @background-alt;
-            border-radius: 8px;
+            border: 2px solid @surface;
+            background: @bg;
+            border-radius: ${toString ui.border.radius}px;
           }
 
           tooltip label {
-            color: @foreground;
+            color: @fg;
           }
 
           #custom-notification,
@@ -378,9 +369,9 @@
             min-width: 25px;
             padding: 0 10px;
             margin: 0 4px;
-            color: @foreground;
-            background-color: @background;
-            border-radius: 8px;
+            color: @fg;
+            background-color: @bg;
+            border-radius: ${toString ui.border.radius}px;
           }
 
           #custom-notification:hover,
@@ -394,7 +385,7 @@
           #network:hover,
           #battery:hover {
             transition: all 0.3s ease;
-            color: @accent-active;
+            color: @blue;
           }
 
           /* Modules Left */
@@ -404,20 +395,20 @@
 
           #tray window decoration {
             padding: 6px 12px;
-            background-color: alpha(@background, 0.9);
-            border-radius: 8px;
+            background-color: alpha(@bg, 0.9);
+            border-radius: ${toString ui.border.radius}px;
           }
 
           /* Modules Center */
           #workspaces {
             padding: 0px 10px;
-            background-color: @background;
-            border-radius: 8px;
+            background-color: @bg;
+            border-radius: ${toString ui.border.radius}px;
           }
 
           #workspaces button {
             padding: 0 5px;
-            color: alpha(@foreground-muted, 0.4);
+            color: alpha(@muted, 0.4);
             transition: all 0.2s ease;
           }
 
@@ -428,7 +419,7 @@
           }
 
           #workspaces button.active {
-            color: @foreground-muted;
+            color: @muted;
             text-shadow: 0px 0px 2px rgba(0, 0, 0, 0.5);
           }
 
@@ -444,16 +435,16 @@
           }
 
           #workspaces button.empty.active {
-            color: @foreground-muted;
+            color: @muted;
             text-shadow: 0px 0px 2px rgba(0, 0, 0, 0.5);
           }
 
           /* Modules Right */
           #pulseaudio-slider,
           #backlight-slider {
-            background-color: @background;
             padding: 0 10px;
-            border-radius: 8px;
+            background-color: @bg;
+            border-radius: ${toString ui.border.radius}px;
           }
 
           #pulseaudio-slider slider,
@@ -466,16 +457,16 @@
           #backlight-slider trough {
             min-height: 8px;
             min-width: 100px;
-            border-radius: 8px;
-            background-color: @background-alt;
+            background-color: @surface;
+            border-radius: ${toString ui.border.radius}px;
           }
 
           #pulseaudio-slider highlight,
           #backlight-slider highlight {
             min-width: 8px;
             min-height: 8px;
-            border-radius: 8px;
-            background: @foreground;
+            background-color: @fg;
+            border-radius: ${toString ui.border.radius}px;
           }
 
           #bluetooth,
@@ -486,40 +477,31 @@
 
           #battery.charging.warning,
           #battery.charging.critical {
-            animation-name: blink-success;
-            animation-duration: 2s;
-            animation-timing-function: ease-in-out;
-            animation-iteration-count: infinite;
-            animation-direction: alternate;
+            color: @green;
+            animation: battery-blink 2s ease-in-out infinite alternate;
           }
 
           #battery.charging.warning:hover,
           #battery.charging.critical:hover {
-            color: @accent-success;
+            color: @green;
           }
 
           #battery.warning {
-            animation-name: blink-warning;
-            animation-duration: 2s;
-            animation-timing-function: ease-in-out;
-            animation-iteration-count: infinite;
-            animation-direction: alternate;
+            color: @yellow;
+            animation: battery-blink 2s ease-in-out infinite alternate;
           }
 
           #battery.warning:hover {
-            color: @accent-warning;
+            color: @yellow;
           }
 
           #battery.critical {
-            animation-name: blink-urgent;
-            animation-duration: 0.8s;
-            animation-timing-function: ease-in-out;
-            animation-iteration-count: infinite;
-            animation-direction: alternate;
+            color: @red;
+            animation: battery-blink 0.8s linear infinite alternate;
           }
 
           #battery.critical:hover {
-            color: @accent-urgent;
+            color: @red;
           }
         '';
       };

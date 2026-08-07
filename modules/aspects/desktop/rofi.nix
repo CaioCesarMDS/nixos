@@ -1,54 +1,60 @@
 { ... }:
 {
   den.aspects.rofi.homeManager =
-    { config, pkgs, ... }:
+    {
+      config,
+      pkgs,
+      ui,
+      ...
+    }:
 
     let
-      colors = {
-        background = "#2A2A2A";
-        background-alt = "#383838";
-        foreground = "#CCCCCC";
-        foreground-muted = "#A0A0A0";
-        accent-primary = "#B392F0";
-        accent-active = "#79B8FF";
-        accent-urgent = "#FF7A84";
-      };
+      themeVars = ''
+         * {
+          bg:               ${ui.colors.bg}B3;
+          bg-solid:         ${ui.colors.bg};
+          surface:          ${ui.colors.surface}B3;
+          surface-solid:    ${ui.colors.surface};
+          fg:               ${ui.colors.fg};
+          muted:            ${ui.colors.muted};
+          cyan:             ${ui.colors.cyan};
+          blue:             ${ui.colors.blue};
+          green:            ${ui.colors.green};
+          magenta:          ${ui.colors.magenta};
+          orange:           ${ui.colors.orange};
+          purple:           ${ui.colors.purple};
+          red:              ${ui.colors.red};
+          yellow:           ${ui.colors.yellow};
+
+          radius:           ${toString ui.border.radius}px;
+        }
+      '';
 
       confirmTheme = pkgs.writeText "rofi-confirm.rasi" ''
-        * {
-          background: ${colors.background};
-          background-alt: ${colors.background-alt};
-          foreground: ${colors.foreground};
-          foreground-muted: ${colors.foreground-muted};
-          accent-primary: ${colors.accent-primary};
-          accent-active: ${colors.accent-active};
-          accent-urgent: ${colors.accent-urgent};
-        }
+        ${themeVars}
 
         configuration {
-          modi:                       "drun";
-          show-icons:                 false;
-          font:                       "JetBrainsMono Nerd Font 10";
+          font:                   "${ui.font.propo} 10";
         }
 
         window {
           location:               center;
           anchor:                 center;
           fullscreen:             false;
-          width:                  20em;
-          border-radius:          0.5em;
+          width:                  400px;
+          border-radius:          @radius;
         }
 
         mainbox {
           children:               [ "message", "listview" ];
-          background-color:       @background;
+          background-color:       @bg-solid;
         }
 
         message {
           str:                    "Are you sure?";
-          padding:                1.5em;
-          text-color:             @foreground;
-          background-color:       @background-alt;
+          padding:                20px;
+          text-color:             @fg;
+          background-color:       @bg-solid;
         }
 
         textbox {
@@ -59,30 +65,22 @@
         }
 
         listview {
-          background-color:       @background;
+          background-color:       @surface-solid;
           columns:                2;
           lines:                  1;
-          padding:                1em;
-          spacing:                1em;
-        }
-
-        element-text {
-          horizontal-align:       0.5;
-        }
-
-        textbox {
-          horizontal-align:       0.5;
+          padding:                20px;
+          spacing:                20px;
         }
 
         element {
-          padding:                16px 8px;
-          border-radius:          12px;
-          background-color:       @background-alt;
-          text-color:             @foreground;
+          padding:                10px 5px;
+          border-radius:          @radius;
+          background-color:       @bg-solid;
+          text-color:             @fg;
         }
 
         element-text {
-          font:                   "JetBrainsMono Nerd Font 32";
+          font:                   "${ui.font.propo} 32";
           background-color:       transparent;
           text-color:             inherit;
           vertical-align:         0.5;
@@ -90,85 +88,66 @@
         }
 
         element selected.normal {
-          background-color:       @accent-active;
-          text-color:             @background-alt;
+          background-color:       @blue;
+          text-color:             @surface-solid;
         }
       '';
 
       passwordPromptTheme = pkgs.writeText "rofi-password.rasi" ''
-        * {
-          background:        ${colors.background};
-          background-alt:    ${colors.background-alt};
-          foreground:        ${colors.foreground};
-          foreground-muted:  ${colors.foreground-muted};
-          accent-primary:    ${colors.accent-primary};
-          accent-active:     ${colors.accent-active};
-          accent-urgent:     ${colors.accent-urgent};
-
-          font: "JetBrainsMono Nerd Font 10";
-        }
+        ${themeVars}
 
         configuration {
-          show-icons: false;
+          font:              "${ui.font.propo} 10";
         }
 
         window {
-          width:             26em;
+          width:             480px;
           transparency:      "real";
-          border-radius:     0.5em;
-          background-color:  @background;
+          border-radius:     @radius;
+          background-color:  @bg;
         }
 
         mainbox {
-          padding:           1em;
+          padding:           10px;
           background-color:  transparent;
           children:          [ "inputbar" ];
         }
 
         inputbar {
-          padding:           0.5em;
-          border-radius:     0.5em;
-          background-color:  @background-alt;
+          padding:           2px;
+          border-radius:     @radius;
+          background-color:  @surface;
           children:          [ "textbox-prompt-colon", "entry" ];
         }
 
         textbox-prompt-colon {
           str:               "󰌾";
           expand:            false;
-          padding:           0.8em 0.5em;
+          padding:           16px;
+          text-color:        @fg;
           background-color:  transparent;
-          text-color:        @foreground;
         }
 
         entry {
           expand:            true;
-          padding:           0.8em;
+          padding:           16px 16px 16px 0;
           background-color:  transparent;
-          text-color:        @foreground;
+          text-color:        @fg;
           placeholder:       "Password";
-          placeholder-color: @foreground-muted;
+          placeholder-color: @muted;
         }
       '';
 
       powerMenuTheme = pkgs.writeText "rofi-power-menu.rasi" ''
-        * {
-          background: ${colors.background};
-          background-alt: ${colors.background-alt};
-          foreground: ${colors.foreground};
-          foreground-muted: ${colors.foreground-muted};
-          accent-primary: ${colors.accent-primary};
-          accent-active: ${colors.accent-active};
-          accent-urgent: ${colors.accent-urgent};
-        }
+        ${themeVars}
 
         configuration {
-          show-icons:             false;
-          font:                   "JetBrainsMono Nerd Font 10";
+          font:                   "${ui.font.propo} 10";
         }
 
         window {
-          width:                  46em;
-          border-radius:          0.5em;
+          width:                  860px;
+          border-radius:          @radius;
           transparency:           "real";
           location:               center;
           anchor:                 center;
@@ -176,13 +155,14 @@
         }
 
         mainbox {
-          spacing:                0;
-          background-color:       @background;
+          background-color:       @bg-solid;
           children:               [ "inputbar", "listview", "message" ];
         }
 
         inputbar {
+          margin:                 15px 15px 0 15px;
           padding:                100px 80px;
+          border-radius:          @radius;
           background-color:       transparent;
           background-image:       url("~/.cache/wallpaper/current", width);
           children:               [ "textbox-prompt-colon", "dummy", "prompt" ];
@@ -192,9 +172,9 @@
           str:                    " System";
           expand:                 false;
           padding:                12px;
-          border-radius:          12px;
-          background-color:       @background;
-          text-color:             @foreground;
+          border-radius:          @radius;
+          background-color:       @bg;
+          text-color:             @fg;
         }
 
         dummy {
@@ -203,9 +183,9 @@
 
         prompt {
           padding:                12px;
-          border-radius:          12px;
-          background-color:       @background;
-          text-color:             @foreground;
+          border-radius:          @radius;
+          background-color:       @bg;
+          text-color:             @fg;
         }
 
         listview {
@@ -224,13 +204,13 @@
 
         element {
           padding:                30px 10px;
-          border-radius:          12px;
-          background-color:       @background-alt;
-          text-color:             @foreground;
+          border-radius:          @radius;
+          background-color:       @surface-solid;
+          text-color:             @fg;
         }
 
         element-text {
-          font:                   "JetBrains Mono Nerd Font 32";
+          font:                   "${ui.font.propo} 32";
           background-color:       transparent;
           text-color:             inherit;
           vertical-align:         0.5;
@@ -238,14 +218,14 @@
         }
 
         element selected.normal {
-          background-color:       @accent-active;
-          text-color:             @background-alt;
+          background-color:       @blue;
+          text-color:             @surface-solid;
         }
 
         message {
-          padding:                1em;
-          background-color:       @background-alt;
-          text-color:             @foreground;
+          padding:                20px;
+          background-color:       @surface-solid;
+          text-color:             @fg;
         }
 
         textbox {
@@ -257,15 +237,7 @@
       '';
 
       launcherTheme = pkgs.writeText "rofi-launcher.rasi" ''
-        * {
-          background: ${colors.background};
-          background-alt: ${colors.background-alt};
-          foreground: ${colors.foreground};
-          foreground-muted: ${colors.foreground-muted};
-          accent-primary: ${colors.accent-primary};
-          accent-active: ${colors.accent-active};
-          accent-urgent: ${colors.accent-urgent};
-        }
+        ${themeVars}
 
         configuration {
           modi:                   "drun,filebrowser,window,run";
@@ -277,16 +249,16 @@
           display-run:            " ";
           window-format:          "{w} · {c} · {t}";
           hover-select:           false;
-          font:                   "JetBrainsMono Nerd Font 10";
+          font:                   "${ui.font.propo} 10";
           icon-theme:             "PapirusDark";
         }
 
         window {
-          width:                  56em;
-          height:                 35em;
+          width:                  980px;
+          height:                 560px;
           transparency:           "real";
-          border-radius:          0.5em;
-          background-color:       @background;
+          border-radius:          @radius;
+          background-color:       @bg-solid;
         }
 
         mainbox {
@@ -296,10 +268,32 @@
         }
 
         imagebox {
-          padding:                0 0 0.5em 0;
           orientation:            vertical;
           background-image:       url("~/.cache/wallpaper/current", height);
           children:               [ "inputbar", "dummy", "mode-switcher" ];
+        }
+
+        inputbar {
+          margin:                 20px;
+          border-radius:          @radius;
+          background-color:       @bg;
+          children:               [ "textbox-prompt-colon", "entry" ];
+        }
+
+        textbox-prompt-colon {
+          str:                    "";
+          expand:                 false;
+          background-color:       transparent;
+          padding:                20px 0 0 20px;
+          text-color:             @fg;
+        }
+
+        entry {
+          padding:                20px;
+          text-color:             @fg;
+          placeholder:            "Search";
+          background-color:       transparent;
+          placeholder-color:      inherit;
         }
 
         dummy {
@@ -308,55 +302,32 @@
 
         mode-switcher {
           orientation:            horizontal;
-          width:                  6.6em;
-          padding:                1.5em;
-          spacing:                1.5em;
+          width:                  25px;
+          padding:                20px;
+          spacing:                10px;
           background-color:       transparent;
         }
 
         button {
           padding:                15px;
-          border-radius:          2em;
-          background-color:       @background;
-          text-color:             @foreground;
+          border-radius:          @radius;
+          background-color:       @bg-solid;
+          text-color:             @fg;
         }
 
         button selected {
-          background-color:       @accent-active;
-          text-color:             @background-alt;
-        }
-
-        inputbar {
-          margin:                 1em;
-          border-radius:          2em;
-          background-color:       @background;
-          children:               [ "textbox-prompt-colon", "entry" ];
-        }
-
-        textbox-prompt-colon {
-          str:                    "";
-          expand:                 false;
-          background-color:       transparent;
-          padding:                1em 0.3em 0 1em;
-          text-color:             @foreground;
-        }
-
-        entry {
-          padding:                1em;
-          text-color:             @foreground;
-          placeholder:            "Search";
-          background-color:       transparent;
-          placeholder-color:      inherit;
+          background-color:       @blue;
+          text-color:             @surface;
         }
 
         listbox {
-          background-color:       @background;
+          background-color:       @bg;
           children:               [ "listview" ];
         }
 
         listview {
-          padding:                1.5em;
-          spacing:                0.5em;
+          padding:                20px 25px;
+          spacing:                5px;
           columns:                1;
           cycle:                  true;
           dynamic:                true;
@@ -364,23 +335,23 @@
           fixed-height:           true;
           fixed-columns:          true;
           background-color:       transparent;
-          text-color:             @foreground;
+          text-color:             @fg;
         }
 
         element {
-          padding:                0.5em;
+          padding:                15px;
           background-color:       transparent;
-          text-color:             @foreground;
-          border-radius:          1.5em;
+          text-color:             @fg;
+          border-radius:          40px;
         }
 
         element selected.normal {
-          text-color:             @background;
-          background-color:       @accent-active;
+          text-color:             @bg;
+          background-color:       @blue;
         }
 
         element-icon {
-          size:                   2.5em;
+          size:                   40px;
           background-color:       transparent;
           text-color:             inherit;
         }
@@ -394,28 +365,18 @@
       '';
 
       listMenuTheme = pkgs.writeText "rofi-list-menu.rasi" ''
-        * {
-          background: ${colors.background};
-          background-alt: ${colors.background-alt};
-          foreground: ${colors.foreground};
-          foreground-muted: ${colors.foreground-muted};
-          accent-primary: ${colors.accent-primary};
-          accent-active: ${colors.accent-active};
-          accent-urgent: ${colors.accent-urgent};
-        }
+        ${themeVars}
 
         configuration {
-          modi:                   "drun";
-          show-icons:             false;
-          font:                   "JetBrainsMono Nerd Font 10";
+          font:                   "${ui.font.propo} 10";
         }
 
         window {
-          width:                  40em;
-          height:                 32em;
+          width:                  600px;
+          height:                 520px;
           transparency:           "real";
-          border-radius:          0.5em;
-          background-color:       @background;
+          border-radius:          @radius;
+          background-color:       transparent;
         }
 
         mainbox {
@@ -425,42 +386,42 @@
         }
 
         imagebox {
-          padding:                1em;
           orientation:            vertical;
           background-image:       url("~/.cache/wallpaper/current", width);
           children:               [ "inputbar"];
         }
 
         inputbar {
-          border-radius:          2em;
-          background-color:       @background;
+          margin:                 20px;
+          border-radius:          @radius;
+          background-color:       @bg;
           children:               [ "textbox-prompt-colon", "entry" ];
         }
 
         textbox-prompt-colon {
           str:                    "";
           expand:                 false;
-          padding:                1em 0.3em 0 1em;
+          padding:                20px 0 0 20px;
           background-color:       transparent;
-          text-color:             @foreground;
+          text-color:             @fg;
         }
 
         entry {
-          padding:                1em;
-          text-color:             @foreground;
+          padding:                20px;
+          text-color:             @fg;
           placeholder:            "Search";
           background-color:       transparent;
           placeholder-color:      inherit;
         }
 
         listbox {
-          background-color:       @background;
+          background-color:       @bg;
           children:               [ "listview" ];
         }
 
         listview {
-          padding:                1.5em;
-          spacing:                0.5em;
+          padding:                18px;
+          spacing:                8px;
           columns:                1;
           cycle:                  true;
           dynamic:                true;
@@ -468,19 +429,19 @@
           fixed-height:           true;
           fixed-columns:          true;
           background-color:       transparent;
-          text-color:             @foreground;
+          text-color:             @fg;
         }
 
         element {
-          padding:                0.5em;
+          padding:                10px;
           background-color:       transparent;
-          text-color:             @foreground;
+          text-color:             @fg;
           border-radius:          1em;
         }
 
         element selected.normal {
-          background-color:       @accent-active;
-          text-color:             @background-alt;
+          background-color:       @blue;
+          text-color:             @surface;
         }
 
         element-text {
@@ -489,22 +450,11 @@
         }
       '';
 
-      wallpaperManagerTheme = pkgs.writeText "rofi-wallpaper-manager.rasi" ''
-        * {
-          background: ${colors.background};
-          background-alt: ${colors.background-alt};
-          foreground: ${colors.foreground};
-          foreground-muted: ${colors.foreground-muted};
-          accent-primary: ${colors.accent-primary};
-          accent-active: ${colors.accent-active};
-          accent-urgent: ${colors.accent-urgent};
-        }
+     wallpaperManagerTheme = pkgs.writeText "rofi-wallpaper-manager.rasi" ''
+        ${themeVars}
 
         configuration {
-          modi:                        "drun";
-          show-icons:                  true;
-          drun-display-format:         "{name}";
-          font:                        "JetBrainsMono Nerd Font 10";
+          font:                       "${ui.font.propo} 10";
         }
 
         window {
@@ -518,7 +468,7 @@
           border:                      0em;
           border-radius:               30px 5px 30px 5px;
           border-color:                transparent;
-          background-color:            @background;
+          background-color:            @bg;
         }
 
         mainbox {
@@ -539,7 +489,7 @@
           reverse:                     true;
           cursor:                      "default";
           background-color:            transparent;
-          text-color:                  @foreground;
+          text-color:                  @fg;
         }
 
         element {
@@ -547,19 +497,19 @@
           spacing:                     0em;
           padding:                     0em;
           cursor:                      pointer;
-          background-color:            @background-alt;
-          text-color:                  @foreground;
+          background-color:            @surface;
+          text-color:                  @fg;
         }
 
         element selected.normal {
-          background-color:            @accent-active;
-          text-color:                  @background;
+          background-color:            @blue;
+          text-color:                  @bg;
         }
 
         element-icon {
           cursor:                      inherit;
           size:                        10em;
-          background-color:            @foreground;
+          background-color:            @fg;
           text-color:                  inherit;
           expand:                      false;
         }
@@ -577,7 +527,7 @@
           spacing:                     10px;
           padding:                     30px 60px;
           background-color:            transparent;
-          text-color:                  @background;
+          text-color:                  @bg;
           border-radius: 				       15px 5px 15px 5px;
           orientation:                 horizontal;
           children:                    [ "dummy", "textbox-prompt-colon", "entry", "entry-counter", "dummy" ];
@@ -594,8 +544,8 @@
           str:                         "󰸉 ";
           padding:                     10px 15px;
           border-radius:               15px 5px 15px 5px;
-          background-color:            @background-alt;
-          text-color:                  @foreground;
+          background-color:            @surface;
+          text-color:                  @fg;
         }
 
         entry {
@@ -604,8 +554,8 @@
           width:                       300px;
           padding:                     12px 16px;
           border-radius:               5px 15px 5px 15px;
-          background-color:            @background-alt;
-          text-color:                  @foreground;
+          background-color:            @surface;
+          text-color:                  @fg;
           cursor:                      text;
           placeholder:                 "Search Wallpaper";
         }
@@ -616,8 +566,8 @@
         	orientation:				         horizontal;
           padding:                     12px 16px;
         	border-radius:               15px 5px 15px 5px;
-          background-color:            @background-alt;
-          text-color:                  @foreground;
+          background-color:            @surface;
+          text-color:                  @fg;
         	children: 					         [ num-filtered-rows, textbox-divider, num-rows ];
         }
 
@@ -1649,7 +1599,7 @@
               w_thumb=$(get_thumbnail_path "$wallpaper")
               [ -s "$w_thumb" ] && w_icon="$w_thumb" || w_icon=""
 
-              printf '%s:::%s:::%s\0icon\x1f%s\n' "$w_name" "$wallpaper" "$w_thumb" "$w_icon"
+            printf '%s:::%s:::%s\0icon\x1f%s\n' "$w_name" "$wallpaper" "$w_thumb" "$w_icon"
             done > "$rofi_input_file"
 
             local columns=4
@@ -1661,6 +1611,7 @@
               -theme-str "$rofi_style" \
               -theme "${wallpaperManagerTheme}" \
               -p "Wallpapers" <"$rofi_input_file")
+
 
             [ -z "$rofi_output" ] && return 1
 
@@ -1718,7 +1669,6 @@
             Exec=true
             NoDisplay=true
           '';
-
           "applications/rofi-theme-selector.desktop".text = ''
             [Desktop Entry]
             Type=Application
