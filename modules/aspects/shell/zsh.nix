@@ -37,12 +37,12 @@
             la = "eza -a";
             lah = "eza -lah";
             lt = "eza -aT";
-            nxck = "nix flake check";
-            nxwt = "nix run .#write-flake";
-            nxcl = "nh clean all";
-            nxrs = "nh os switch ~/nixos";
-            nxup = "nix flake update --flake ~/nixos";
-            nxupg = "nix flake update --flake ~/nixos && nh os switch ~/nixos";
+            nck = "nix flake check";
+            nwt = "nix run .#write-flake";
+            ncl = "nh clean all";
+            nrs = "nh os switch ~/nixos";
+            nup = "nix flake update --flake ~/nixos";
+            nupg = "nix flake update --flake ~/nixos && nh os switch ~/nixos";
           };
           plugins = [
             {
