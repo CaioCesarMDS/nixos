@@ -18,6 +18,7 @@
           extraConfig = {
             PROJECTS = "${home}/Projects";
             WALLPAPERS = "${home}/Pictures/Wallpapers";
+            SCREENSHOTS = "${home}/Pictures/Screenshots";
           };
         };
         mimeApps.enable = true;
