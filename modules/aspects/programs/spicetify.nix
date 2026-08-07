@@ -12,8 +12,6 @@
 
       programs.spicetify = {
         enable = true;
-        theme = spicePkgs.themes.dribbblish;
-        colorScheme = "lunar";
         enabledExtensions = with spicePkgs.extensions; [
           adblock
           hidePodcasts
