@@ -5,12 +5,8 @@
       config,
       pkgs,
       ui,
-      user,
       ...
     }:
-    let
-      citySafeName = builtins.replaceStrings [ " " ] [ "+" ] user.city;
-    in
     {
       programs.waybar = {
         enable = true;
@@ -126,17 +122,11 @@
           "group/group-right" = {
             "orientation" = "inherit";
             "modules" = [
-              "custom/weather"
               "pulseaudio#microphone"
               "group/audio"
               "group/brightness"
               "group/group-system"
             ];
-          };
-          "custom/weather" = {
-            "format" = "{}";
-            "exec" = "curl -s 'wttr.in/${citySafeName}?format=%c%t'";
-            "interval" = 300;
           };
           "pulseaudio#microphone" = {
             "format" = "{format_source}";
@@ -361,7 +351,6 @@
           #clock,
           #privacy,
           #tray,
-          #custom-weather,
           #pulseaudio.microphone,
           #pulseaudio,
           #backlight,
@@ -377,7 +366,6 @@
           #custom-notification:hover,
           #clock:hover,
           #privacy:hover,
-          #custom-weather:hover,
           #pulseaudio.microphone:hover,
           #pulseaudio:hover,
           #backlight:hover,
