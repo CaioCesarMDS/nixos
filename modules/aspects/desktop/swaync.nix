@@ -1,7 +1,12 @@
 { ... }:
 {
   den.aspects.swaync.homeManager =
-    { pkgs, ... }:
+    {
+      config,
+      pkgs,
+      ui,
+      ...
+    }:
     let
       hyprsunsetToggle = pkgs.writeShellApplication {
         name = "hyprsunset-toggle";
@@ -82,7 +87,7 @@
               actions = [
                 {
                   label = "";
-                  command = "hyprpicker -a -f hex -n";
+                  command = "swaync-client -cp && sleep 0.6 && hyprpicker -a -f hex -n";
                 }
                 {
                   label = "󰃟";
@@ -106,24 +111,30 @@
         };
 
         style = ''
-          @define-color background #2A2A2A;
-          @define-color background-alt #383838;
-          @define-color foreground #CCCCCC;
-          @define-color foreground-muted #A0A0A0;
-          @define-color accent-primary #B392F0;
-          @define-color accent-active  #79B8FF;
-          @define-color accent-urgent  #FF7A84;
+          @define-color bg        alpha(${ui.colors.bg}, ${toString ui.opacity.popups});
+          @define-color surface   alpha(${ui.colors.surface}, ${toString ui.opacity.popups});
+          @define-color fg        ${ui.colors.fg};
+          @define-color muted     ${ui.colors.muted};
+          @define-color cyan      ${ui.colors.cyan};
+          @define-color blue      ${ui.colors.blue};
+          @define-color green     ${ui.colors.green};
+          @define-color magenta   ${ui.colors.magenta};
+          @define-color orange    ${ui.colors.orange};
+          @define-color purple   ${ui.colors.purple};
+          @define-color red       ${ui.colors.red};
+          @define-color yellow    ${ui.colors.yellow};
 
           * {
             outline: none;
             box-shadow: none;
-            color: @foreground;
-            font-family: "JetBrainsMono Nerd Font Mono";
+            color: @fg;
+            font-size: 1rem;
+            font-family: '${ui.font.propo}';
           }
 
           .control-center {
-            background-color: @background;
-            border-radius: 8px;
+            background-color: @bg;
+            border-radius: ${toString ui.border.radius}px;
           }
 
           .control-center-list {
@@ -139,14 +150,18 @@
             background-color: transparent;
           }
 
+
           .notification {
-            background-color: @background;
-            border-radius: 8px;
             padding: 6px;
+            background-color: @bg;
+            border-radius: ${toString ui.border.radius}px;
           }
 
-          .notification:hover {
-            background-color: @background-alt;
+          .notification * {
+            background-color: transparent;
+          }
+          .right * {
+            opacity: 0;
           }
 
           .notification-content {
@@ -156,19 +171,17 @@
 
           .summary {
             padding-top: 2px;
-            font-size: 14px;
             font-weight: bold;
           }
 
           .time {
             padding-top: 2px;
-            font-size: 14px;
-            color: @foreground-muted;
+            color: @muted;
           }
 
           .body {
-            font-size: 13px;
             padding-top: 4px;
+            font-size: 0.9rem;
           }
 
           .notification image {
@@ -177,88 +190,84 @@
           }
 
           .widget-mpris-title {
-            font-size: 16px;
+            font-size: 1.1rem;
             font-weight: 700;
-          }
-
-          .widget-mpris-subtitle {
-            font-size: 14px;
-          }
-
-          .widget-title {
-            padding: 8px 8px 0 8px;
           }
 
           .widget-title > button {
             padding: 2px 16px;
             border-radius: 12px;
-            font-size: 18px;
-            background-color: #ea5e5e66;
+            background-color: alpha(@red, 0.5);
             transition: all 0.4s ease-in-out;
           }
 
           .widget-title > button:hover {
-            background-color: #f34c4c99;
+            background-color: @red;
             box-shadow: 0px 0px 5px red;
           }
 
-          .widget-dnd {
-            padding: 8px;
+          .widget-title > * ,
+          .widget-title > button > * {
+            font-size: 1.2rem;
+          }
+
+          .widget-dnd > * {
+            font-size: 1.2rem;
           }
 
           .widget-dnd > switch {
             border-radius: 12px;
-            background-color: @foreground-muted;
+            background-color: alpha(@muted, 0.5);
           }
 
           .widget-dnd > switch:checked {
-            background-color: @foreground;
+            background-color: @fg;
           }
 
           .widget-dnd > switch slider {
-            background-color: @background;
+            background-color: @bg;
             border-radius: 10px;
           }
 
           .widget-dnd > switch:checked slider {
-            background-color: #272727;
+            background-color: @surface;
             border-radius: 10px;
           }
 
           .widget-buttons-grid {
             margin: 10px;
-            padding: 0 8px 8px 8px;
             background-color: transparent;
           }
 
           .widget-buttons-grid > flowbox > flowboxchild > button {
+            padding: 10px 8px;
             background-color: transparent;
-            border-radius: 12px;
+            border-radius: ${toString ui.border.radius}px;
             box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2), 0 0 8px rgba(0, 0, 0, 0.3);
           }
 
           .widget-buttons-grid > flowbox > flowboxchild > button:hover {
-            background-color: @foreground;
+            background-color: @blue;
             box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.2);
             transition: all 0.5s ease;
           }
 
           .widget-buttons-grid > flowbox > flowboxchild > button label {
-            font-size: 24px;
+            font-size: 1.2rem;
             transition: all 0.7s ease;
           }
 
           .widget-buttons-grid > flowbox > flowboxchild > button:hover label {
-            color: @background;
+            color: @bg;
             transition: all 0.7s ease;
           }
 
           .widget-buttons-grid > flowbox > flowboxchild > button.toggle:checked {
-            background-color: @foreground;
+            background-color: @blue;
           }
 
           .widget-buttons-grid > flowbox > flowboxchild > button.toggle:checked label {
-            color: @background;
+            color: @bg;
           }
         '';
       };

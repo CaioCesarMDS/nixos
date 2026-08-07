@@ -18,7 +18,12 @@
       };
 
     homeManager =
-      { lib, pkgs, ... }:
+      {
+        lib,
+        pkgs,
+        ui,
+        ...
+      }:
       let
         lua = lib.generators.mkLuaInline;
 
@@ -136,9 +141,9 @@
 
           config = {
             general = {
-              border_size = 0;
-              gaps_in = 3;
-              gaps_out = 10;
+              border_size = ui.border.width;
+              gaps_in = ui.spacing.gapsIn;
+              gaps_out = ui.spacing.gapsOut;
               allow_tearing = true;
               layout = "dwindle";
             };
@@ -149,16 +154,15 @@
             };
 
             decoration = {
-              rounding = 10;
-              active_opacity = 1;
-              inactive_opacity = 0.8;
+              rounding = ui.border.radius;
+              active_opacity = ui.opacity.windowActive;
+              inactive_opacity = ui.opacity.windowInactive;
               blur = {
                 enabled = true;
-                size = 6;
-                passes = 2;
-                xray = true;
-                noise = 0.05;
+                size = ui.blur.size;
+                passes = ui.blur.passes;
                 popups = true;
+                input_methods = true;
               };
             };
 
@@ -175,11 +179,9 @@
               force_default_wallpaper = 0;
               disable_hyprland_logo = true;
               disable_splash_rendering = true;
-              font_family = "JetBrainsMono Nerd Font";
+              font_family = ui.font.propo;
               focus_on_activate = true;
               close_special_on_empty = true;
-              enable_swallow = true;
-              swallow_regex = ".*(kitty|alacritty|foot|wezterm).*";
               mouse_move_enables_dpms = true;
               key_press_enables_dpms = true;
             };
@@ -431,6 +433,31 @@
               move = "74.5% 4.25%";
               animation = "slide";
               opacity = "1.0 1.0 override";
+            }
+          ];
+
+          layer_rule = [
+            {
+              match = {
+                namespace = "waybar";
+              };
+              blur = true;
+              ignore_alpha = 0.1;
+              blur_popups = true;
+            }
+            {
+              match = {
+                namespace = "swaync-control-center|swaync-notification-window";
+              };
+              blur = true;
+              ignore_alpha = 0.1;
+            }
+            {
+              match = {
+                namespace = "rofi";
+              };
+              blur = true;
+              ignore_alpha = 0.1;
             }
           ];
 
