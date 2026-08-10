@@ -28,7 +28,7 @@
           "--git-ignore"
           "--time-style=long-iso"
           "--classify"
-          "--hyperlink"
+          "--hyperlink=auto"
         ];
       };
 
