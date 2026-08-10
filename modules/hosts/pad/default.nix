@@ -1,5 +1,10 @@
+{ den, ... }:
 {
   den.aspects.pad = {
+    includes = [
+      den.aspects.ly
+    ];
+
     nixos =
       { pkgs, ... }:
       {

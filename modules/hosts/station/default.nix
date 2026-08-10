@@ -2,6 +2,7 @@
 {
   den.aspects.station = {
     includes = [
+      den.aspects.ly
       den.aspects.ollama
       # den.aspects.libvirt
       den.aspects.gaming

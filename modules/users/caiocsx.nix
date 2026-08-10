@@ -7,7 +7,6 @@
       den.batteries.primary-user
       (den.batteries.user-shell "zsh")
 
-      den.aspects.ly
       den.aspects.hyprland
       den.aspects.hypridle
       den.aspects.hyprlock

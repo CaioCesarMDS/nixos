@@ -9,7 +9,7 @@
           enable = true;
           x11Support = false;
           settings = {
-            animation = "doom";
+            animation = "matrix"; # colormix, doom, gameoflife
             clock = "%H:%M";
             hide_borders = true;
             hide_key_hints = false;
