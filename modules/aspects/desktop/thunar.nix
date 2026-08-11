@@ -23,6 +23,8 @@
         environment.systemPackages = with pkgs; [
           xarchiver
           ffmpegthumbnailer
+          gvfs
+          glib
         ];
       };
 
