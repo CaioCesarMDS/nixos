@@ -7,19 +7,7 @@
       den.batteries.primary-user
       (den.batteries.user-shell "zsh")
 
-      den.aspects.hyprland
-      den.aspects.hypridle
-      den.aspects.hyprlock
-      den.aspects.hyprsunset
-
-      den.aspects.desktop-packages
-      den.aspects.rofi
-      den.aspects.swaync
-      den.aspects.waybar
-      den.aspects.clipboard
-      den.aspects.stylix
-      den.aspects.xdg
-      den.aspects.wallpapers
+      den.aspects.desktop
 
       den.aspects.zsh
       den.aspects.cli-tools
