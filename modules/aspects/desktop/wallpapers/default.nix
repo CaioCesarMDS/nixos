@@ -1,9 +1,14 @@
 { ... }:
 {
-  den.aspects.wallpapers.homeManager = { ... }: {
+  den.aspects.wallpapers.homeManager = { pkgs, ... }: {
     imports = [
-      ./_base.nix
       ./_services.nix
     ];
+
+    home.packages = with pkgs; [ awww ];
+    home.file."Pictures/Wallpapers" = {
+      source = ../../../../assets/wallpapers;
+      recursive = true;
+    };
   };
 }
