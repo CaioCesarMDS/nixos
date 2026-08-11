@@ -1,66 +1,39 @@
 { config, lib, ... }:
-
 let
   f = config.stylix.fonts;
-  c = config.lib.stylix.colors.withHashtag;
+
+  cHashtag = config.lib.stylix.colors.withHashtag;
 
   baseColors = {
-    bg = c.base00;
-    surface = c.base01;
-    fg = c.base05;
-    muted = c.base04;
-
-    cyan = c.base0C;
-    blue = c.base0D;
-    green = c.base0B;
-    magenta = c.base0F;
-    orange = c.base09;
-    purple = c.base0E;
-    red = c.base08;
-    yellow = c.base0A;
+    bg = cHashtag.base00;
+    surface = cHashtag.base01;
+    fg = cHashtag.base05;
+    muted = cHashtag.base04;
+    cyan = cHashtag.base0C;
+    blue = cHashtag.base0D;
+    green = cHashtag.base0B;
+    magenta = cHashtag.base0F;
+    orange = cHashtag.base09;
+    purple = cHashtag.base0E;
+    red = cHashtag.base08;
+    yellow = cHashtag.base0A;
   };
-
   currentAccent = baseColors.blue;
 
-  toHex =
-    opacity:
-    let
-      intVal = builtins.floor (opacity * 255);
-      hexDigits = [
-        "0"
-        "1"
-        "2"
-        "3"
-        "4"
-        "5"
-        "6"
-        "7"
-        "8"
-        "9"
-        "A"
-        "B"
-        "C"
-        "D"
-        "E"
-        "F"
-      ];
-      hiVal = intVal / 16;
-      loVal = intVal - (hiVal * 16);
+  stripHash = color: lib.strings.removePrefix "#" color;
 
-      hi = builtins.elemAt hexDigits hiVal;
-      lo = builtins.elemAt hexDigits loVal;
-    in
-    "${hi}${lo}";
-
-  withAlpha =
-    color: opacity:
+  toHex2 = opacity:
     let
-      cleanColor = lib.strings.removePrefix "#" color;
+      hex = lib.toHexString (builtins.floor (opacity * 255));
     in
-    "#${cleanColor}${toHex opacity}";
+    if builtins.stringLength hex == 1 then "0${hex}" else hex;
+
+  withAlpha = color: opacity: "#${stripHash color}${toHex2 opacity}";
+  rgba = color: opacity: "rgba(${stripHash color}${toHex2 opacity})";
+  rgb = color: "rgb(${stripHash color})";
 in
 {
-  inherit withAlpha;
+  inherit stripHash withAlpha rgba rgb;
 
   colors = baseColors // {
     accent = currentAccent;
