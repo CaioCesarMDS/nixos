@@ -12,7 +12,7 @@
     homeManager =
       { pkgs, ... }:
       {
-        imports = [ ./config/_default.nix ];
+        imports = [ ./config/_desktop-entries.nix ];
 
         programs.rofi = {
           enable = true;

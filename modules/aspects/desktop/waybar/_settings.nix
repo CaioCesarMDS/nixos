@@ -130,7 +130,7 @@
     on-scroll-down = "";
     tooltip = false;
   };
-  
+
   "group/audio" = {
     orientation = "inherit";
     drawer = {
@@ -228,15 +228,17 @@
         "<span size='12pt'>󰤨</span>"
       ];
       ethernet = "<span size='12pt'>󰈀</span>";
+      linked = "<span size='12pt'>󰖂</span>";
       disabled = "<span size='12pt'>󰤭</span>";
       disconnected = "<span size='12pt'>󰤩</span>";
     };
     format-wifi = "{icon}";
     format-ethernet = "{icon}";
+    format-linked = "{icon}";
     format-disconnected = "{icon}";
     format-disabled = "{icon}";
     tooltip-format-wifi = "{essid}\nSignal: {signalStrength}%\nIP: {ipaddr}/{cidr}\n↓ {bandwidthDownBits}  ↑ {bandwidthUpBits}";
-    tooltip-format-ethernet = "{ifname}\nIP: {ipaddr}/{cidr}\nGateway: {gwaddr}";
+    tooltip-format-ethernet = "{ifname}\nIP: {ipaddr}/{cidr}\n↓ {bandwidthDownBytes}  ↑ {bandwidthUpBytes}";
     tooltip-format-disconnected = "Disconnected";
     tooltip-format-disabled = "Wi-Fi disabled";
     on-click = "rofi-network-manager";
