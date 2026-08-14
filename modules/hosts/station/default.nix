@@ -94,6 +94,12 @@
             };
           };
         };
+
+        # Optional overrides for aspect options
+        # hyprsunset.temperature = 4200;
+        # clipboard.maxItems = 1000;
+        # services.displayManager.ly.animation = "doom";
+        # services.displayManager.sddm.astronaut.theme = "cyberpunk";
       };
   };
 }
