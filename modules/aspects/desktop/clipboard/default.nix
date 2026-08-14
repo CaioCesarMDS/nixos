@@ -1,13 +1,23 @@
 { ... }:
 {
-  den.aspects.clipboard.homeManager = { pkgs, ... }: {
-    imports = [
-      ./_services.nix
-    ];
+  den.aspects.clipboard.homeManager =
+    { config, lib, pkgs, ... }:
+    {
+      imports = [
+        ./_services.nix
+      ];
 
-    home.packages = with pkgs; [
-      cliphist
-      wl-clipboard
-    ];
-  };
+      options.clipboard.maxItems = lib.mkOption {
+        type = lib.types.int;
+        default = 750;
+        description = "Maximum number of items saved in the cliphist history.";
+      };
+
+      config = {
+        home.packages = with pkgs; [
+          cliphist
+          wl-clipboard
+        ];
+      };
+    };
 }
