@@ -23,7 +23,7 @@
       den.aspects.vscodium
       den.aspects.imv
       den.aspects.mpv
-      den.aspects.zathura
+      # den.aspects.zathura
       den.aspects.qbittorrent
       den.aspects.spicetify
       den.aspects.vesktop
@@ -45,8 +45,10 @@
           proton-vpn
           proton-pass
           protonmail-desktop
-          # gimp
+          gimp
+          libresprite
           obsidian
+          godot
           # bruno
           onlyoffice-desktopeditors
         ];
