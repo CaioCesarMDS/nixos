@@ -15,9 +15,6 @@
 
       programs.eza = {
         enable = true;
-        enableBashIntegration = true;
-        enableFishIntegration = true;
-        enableZshIntegration = true;
         git = true;
         colors = "always";
         icons = "always";
