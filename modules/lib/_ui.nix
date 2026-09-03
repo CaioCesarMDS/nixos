@@ -54,10 +54,10 @@ in
   opacity = {
     windowActive = 0.95;
     windowInactive = 0.85;
-    popups = 0.7;
+    popups = 0.85;
   };
   blur = {
     size = 6;
-    passes = 2;
+    passes = 3;
   };
 }
