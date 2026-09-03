@@ -47,16 +47,18 @@
           plugins = [
             {
               name = "fzf-tab";
-              src = pkgs.zsh-fzf-tab + "/share/fzf-tab";
+              src = "${pkgs.zsh-fzf-tab}/share/fzf-tab";
+              file = "fzf-tab.plugin.zsh";
             }
             {
               name = "you-should-use";
-              src = pkgs.zsh-you-should-use + "/share/zsh/plugins/you-should-use";
+              src = "${pkgs.zsh-you-should-use}/share/zsh/plugins/you-should-use";
+              file = "you-should-use.plugin.zsh";
             }
             {
               name = "autopair";
-              src = pkgs.zsh-autopair;
-              file = "share/zsh/zsh-autopair/autopair.zsh";
+              src = "${pkgs.zsh-autopair}/share/zsh/zsh-autopair";
+              file = "autopair.zsh";
             }
           ];
         };
