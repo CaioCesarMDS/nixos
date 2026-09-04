@@ -41,15 +41,6 @@
           extraConfig = lib.concatStringsSep "\n" env;
           settings = settings // rules // animations // autostart // { bind = binds; };
         };
-
-        services = {
-          hyprpolkitagent.enable = true;
-        };
-
-        home.packages = with pkgs; [
-          hyprshot
-          hyprpicker
-        ];
       };
   };
 }
