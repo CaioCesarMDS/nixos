@@ -2,12 +2,14 @@
 {
   window_rule = [
     {
+      name = "suppress-maximize";
       match = {
         class = ".*";
       };
       suppress_event = "maximize";
     }
     {
+      name = "fix-xwayland-drags";
       match = {
         class = "^$";
         title = "^$";
@@ -18,143 +20,42 @@
       };
       no_focus = true;
     }
-    
     {
+      name = "float-system-tools";
       match = {
-        class = "^(xdg-desktop-portal-gtk)$";
+        class = "^(org.pulseaudio.pavucontrol|blueman-manager|nm-connection-editor|xdg-desktop-portal-gtk|org.gnome.FileRoller)$";
       };
       float = true;
     }
     {
+      name = "float-file-dialogs";
       match = {
-        class = "(?i)^(thunar)$";
-        title = "^(Rename.*)$";
+        title = "^(Open File|Select a File|Open Folder|Save As|Library|File Upload|File Operation Progress|Confirm to replace files).*";
       };
       float = true;
     }
-    {
+{
+      name = "float-steam-popups";
       match = {
-        class = "^(xarchiver)$";
-      };
-      float = true;
-    }
-    {
-      match = {
-        class = "^(org.pulseaudio.pavucontrol)$";
-      };
-      float = true;
-    }
-    {
-      match = {
-        class = "^(blueman-manager)$";
-      };
-      float = true;
-    }
-    {
-      match = {
-        class = "^(nm-connection-editor)$";
-      };
-      float = true;
-    }
-
-    {
-      match = {
-        title = "^(Open File)(.*)$";
-      };
-      float = true;
-    }
-    {
-      match = {
-        title = "^(Select a File)(.*)$";
-      };
-      float = true;
-    }
-    {
-      match = {
-        title = "^(Open Folder)(.*)$";
-      };
-      float = true;
-    }
-    {
-      match = {
-        title = "^(Save As)(.*)$";
-      };
-      float = true;
-    }
-    {
-      match = {
-        title = "^(Library)(.*)$";
-      };
-      float = true;
-    }
-    {
-      match = {
-        title = "^(File Upload)(.*)$";
-      };
-      float = true;
-    }
-    {
-      match = {
-        title = "^(File Operation Progress)$";
-      };
-      float = true;
-    }
-    {
-      match = {
-        title = "^(Confirm to replace files)$";
-      };
-      float = true;
-    }
-
-    {
-      match = {
-        class = "^(Steam)$";
-        title = ".*Steam library folder.*";
+        class = "^[Ss]team$";
+        title = "^Friends List$";
       };
       float = true;
       center = true;
+      size = "380 720";
     }
     {
-      match = {
-        class = "^(Steam)$";
-        title = "^(Friends List)$";
-      };
-      float = true;
-      center = true;
-    }
-
-    {
+      name = "size-browser-dialogs";
       match = {
         class = "^(firefox|google-chrome|zen|zen-beta)$";
-        title = "^(Save As)$";
+        title = "^(Save As|Choose Files|Open File|Open Folder)$";
       };
       size = "800 600";
     }
     {
+      name = "pip-browser";
       match = {
         class = "^(firefox|google-chrome|zen|zen-beta)$";
-        title = "^(Choose Files)$";
-      };
-      size = "800 600";
-    }
-    {
-      match = {
-        class = "^(firefox|google-chrome|zen|zen-beta)$";
-        title = "^(Open File)$";
-      };
-      size = "800 600";
-    }
-    {
-      match = {
-        class = "^(firefox|google-chrome|zen|zen-beta)$";
-        title = "^(Open Folder)$";
-      };
-      size = "800 600";
-    }
-
-    {
-      match = {
-        class = "(firefox|google-chrome|zen|zen-beta)";
         title = ".*(Picture-in-Picture|Picture in Picture).*";
       };
       float = true;
@@ -169,23 +70,18 @@
 
   layer_rule = [
     {
+      name = "blur-waybar";
       match = {
-        namespace = "waybar";
+        namespace = "^(waybar)$";
       };
       blur = true;
       ignore_alpha = 0.1;
       blur_popups = true;
     }
     {
+      name = "blur-overlays";
       match = {
-        namespace = "swaync-control-center|swaync-notification-window";
-      };
-      blur = true;
-      ignore_alpha = 0.1;
-    }
-    {
-      match = {
-        namespace = "rofi";
+        namespace = "^(rofi|swaync-control-center|swaync-notification-window)$";
       };
       blur = true;
       ignore_alpha = 0.1;
