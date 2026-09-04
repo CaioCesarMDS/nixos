@@ -5,11 +5,11 @@
       { lib, pkgs, ... }:
       {
         imports = [ inputs.stylix.nixosModules.stylix ];
-
+        
         stylix = {
           enable = true;
           polarity = "dark";
-          base16Scheme = "${pkgs.base16-schemes}/share/themes/catppuccin-mocha.yaml";
+          base16Scheme = "${pkgs.base16-schemes}/share/themes/nord.yaml";
           image = ../../../assets/wallpapers/porsche.jpg;
           cursor = {
             name = "Bibata-Modern-Ice";
@@ -45,10 +45,7 @@
               name = "Noto Color Emoji";
             };
           };
-
-          targets = {
-            grub.enable = false;
-          };
+          targets.grub.enable = false;
         };
       };
 
