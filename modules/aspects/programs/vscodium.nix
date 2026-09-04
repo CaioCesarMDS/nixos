@@ -22,6 +22,24 @@
         "breadcrumbs.enabled" = false;
         "workbench.list.smoothScrolling" = true;
 
+        "workbench.colorCustomizations" = {
+          "editor.background" = ui.colors.surface;
+          "editorGutter.background" = ui.colors.surface;
+          "editor.lineHighlightBackground" = ui.colors.accent;
+
+          "panel.background" = ui.colors.surface;
+          "terminal.background" = ui.colors.surface;
+
+          "sideBar.background" = ui.colors.bg;
+          "sideBarSectionHeader.background" = ui.colors.bg;
+          "activityBar.background" = ui.colors.bg;
+          "editorGroupHeader.tabsBackground" = ui.colors.bg;
+          "statusBar.background" = ui.colors.bg;
+
+          "tab.inactiveBackground" = ui.colors.bg;
+          "tab.activeBackground" = ui.colors.surface;
+        };
+
         "editor.lineHeight" = 1.8;
         "editor.fontLigatures" = true;
         "editor.padding.top" = 20;
@@ -76,6 +94,7 @@
         "terminal.integrated.fontFamily" = "${ui.font.mono}";
         "terminal.integrated.fontLigatures.enabled" = true;
         "terminal.integrated.cursorBlinking" = true;
+        "terminal.integrated.stickyScroll.enabled" = false;
 
         "git.autofetch" = true;
         "diffEditor.ignoreTrimWhitespace" = true;
