@@ -12,6 +12,15 @@ let
     close = lua "hl.dsp.window.close()";
     exit = lua "hl.dsp.exit()";
     float = lua ''hl.dsp.window.float({ action = "toggle" })'';
+    floatSized =
+      x: y:
+      lua ''
+        function()
+          hl.dispatch(hl.dsp.window.float({ action = "toggle" }))
+          hl.dispatch(hl.dsp.window.resize({ x = ${toString x}, y = ${toString y}, exact = true }))
+          hl.dispatch(hl.dsp.window.center())
+        end
+      '';
     fullscreen = lua "hl.dsp.window.fullscreen()";
     maximize = lua "hl.dsp.window.fullscreen({ maximize = true })";
     pseudo = lua "hl.dsp.window.pseudo()";
@@ -54,16 +63,16 @@ let
 in
 [
   # --- Applications ---
-  (bind "SUPER + Q" (dsp.exec terminal))
-  (bind "SUPER + F" (dsp.exec browser))
-  (bind "SUPER + D" (dsp.exec editor))
-  (bind "SUPER + E" (dsp.exec fileManager))
+  (bind "SUPER + Return" (dsp.exec terminal))
+  (bind "SUPER + B" (dsp.exec browser))
+  (bind "SUPER + E" (dsp.exec editor))
+  (bind "SUPER + F" (dsp.exec fileManager))
   (bind "SUPER + R" (dsp.exec "launcher"))
 
   # --- System & Utilities ---
   (bind "SUPER + Delete" dsp.exit)
-  (bind "SUPER + L" (dsp.exec "hyprlock"))
   (bind "SUPER + ESCAPE" (dsp.exec "power-menu"))
+  (bind "SUPER + CTRL + L" (dsp.exec "hyprlock"))
   (bind "SUPER + A" (dsp.exec "swaync-client -t -sw"))
   (bind "SUPER + N" (dsp.exec "network-manager"))
 
@@ -88,27 +97,27 @@ in
   ))
 
   # --- Zoom ---
+  (bind "SUPER + ALT + mouse_up" (lua "function() hl.config({ cursor = { zoom_factor = 1.5 } }) end"))
   (bind "SUPER + ALT + mouse_down" (
-    lua "function() hl.config({ cursor = { zoom_factor = 1.5 } }) end"
+    lua "function() hl.config({ cursor = { zoom_factor = 1.0 } }) end"
   ))
-  (bind "SUPER + ALT + mouse_up" (lua "function() hl.config({ cursor = { zoom_factor = 1.0 } }) end"))
 
   # --- Window Management ---
   (bind "SUPER + C" dsp.close)
   (bind "SUPER + SHIFT + C" (dsp.exec "hyprctl kill"))
-  (bind "SUPER + W" dsp.float)
-  (bind "SUPER + J" (dsp.layout "togglesplit"))
+  (bind "SUPER + W" (dsp.floatSized 1000 660))
+  (bind "SUPER + ALT + W" dsp.float)
+  (bind "SUPER + ALT + J" (dsp.layout "togglesplit"))
   (bind "SUPER + P" dsp.pseudo)
   (bind "SUPER + SPACE" dsp.maximize)
-  (bind "SUPER + SHIFT + SPACE" dsp.fullscreen)
   (bind "SUPER + bracketleft" (dsp.layout "splitratio -0.05"))
   (bind "SUPER + bracketright" (dsp.layout "splitratio +0.05"))
 
   # --- Focus & Window Movement ---
-  (bind "SUPER + Left" (dsp.focus "left"))
-  (bind "SUPER + Right" (dsp.focus "right"))
-  (bind "SUPER + Up" (dsp.focus "up"))
-  (bind "SUPER + Down" (dsp.focus "down"))
+  (bind "SUPER + H" (dsp.focus "left"))
+  (bind "SUPER + L" (dsp.focus "right"))
+  (bind "SUPER + K" (dsp.focus "up"))
+  (bind "SUPER + J" (dsp.focus "down"))
   (bind "SUPER + SHIFT + H" (dsp.swap "left"))
   (bind "SUPER + SHIFT + L" (dsp.swap "right"))
   (bind "SUPER + SHIFT + K" (dsp.swap "up"))
@@ -126,8 +135,8 @@ in
   # --- Window Resizing ---
   (bindOpts "SUPER + SHIFT + Right" (dsp.resizeActive 30 0) { repeating = true; })
   (bindOpts "SUPER + SHIFT + Left" (dsp.resizeActive (-30) 0) { repeating = true; })
-  (bindOpts "SUPER + SHIFT + Up" (dsp.resizeActive 0 (-30)) { repeating = true; })
-  (bindOpts "SUPER + SHIFT + Down" (dsp.resizeActive 0 30) { repeating = true; })
+  (bindOpts "SUPER + SHIFT + Up" (dsp.resizeActive 0 30) { repeating = true; })
+  (bindOpts "SUPER + SHIFT + Down" (dsp.resizeActive 0 (-30)) { repeating = true; })
 
   # --- Media & Hardware Keys ---
   (bindOpts "XF86AudioRaiseVolume" (dsp.exec "wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+") {
