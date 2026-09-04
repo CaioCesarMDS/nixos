@@ -74,16 +74,6 @@ in
     }
     {
       monitor = "";
-      text = "Enter Password";
-      position = "0, -438";
-      halign = "center";
-      valign = "center";
-      font_family = fontBold;
-      font_size = 10;
-      color = fg;
-    }
-    {
-      monitor = "";
       text = "cmd[update:100] hyprlock-lock-state";
       position = "0, -500";
       halign = "center";
@@ -93,7 +83,6 @@ in
       color = fg;
     }
   ];
-
   input-field = [
     {
       monitor = "";
@@ -119,7 +108,6 @@ in
       dots_center = true;
       dots_rounding = -1;
       hide_input = false;
-
     }
   ];
 }
