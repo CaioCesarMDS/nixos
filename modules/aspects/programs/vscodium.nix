@@ -8,6 +8,7 @@
       extensions = with pkgs.vscode-marketplace; [
         pkief.material-icon-theme
         mkhl.direnv
+        jnoortheen.nix-ide
       ];
 
       commonSettings = {
@@ -78,7 +79,6 @@
 
         "git.autofetch" = true;
         "diffEditor.ignoreTrimWhitespace" = true;
-        "diffEditor.hideUnchangedRegions.enabled" = true;
 
         "extensions.ignoreRecommendations" = true;
       };
