@@ -1,28 +1,17 @@
 { ... }:
 {
-  den.aspects.gaming = {
-    nixos =
-      { pkgs, ... }:
-      {
-        programs = {
-          steam = {
-            enable = true;
-            extraCompatPackages = [ pkgs.proton-ge-bin ];
-            protontricks.enable = true;
-            remotePlay.openFirewall = true;
-            localNetworkGameTransfers.openFirewall = true;
-          };
-          gamemode.enable = true;
+  den.aspects.gaming.nixos =
+    { pkgs, ... }:
+    {
+      programs = {
+        steam = {
+          enable = true;
+          extraCompatPackages = [ pkgs.proton-ge-bin ];
+          protontricks.enable = true;
+          remotePlay.openFirewall = true;
+          localNetworkGameTransfers.openFirewall = true;
         };
+        gamemode.enable = true;
       };
-
-    homeManager =
-      { pkgs, ... }:
-      {
-        home.packages = with pkgs; [
-          mangohud
-          lutris
-        ];
-      };
-  };
+    };
 }
