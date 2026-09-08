@@ -30,11 +30,12 @@
     {
       name = "float-file-dialogs";
       match = {
-        title = "^(Open File|Select a File|Open Folder|Save As|Library|File Upload|File Operation Progress|Confirm to replace files).*";
+        title = "^(Open File|Select a File|Open Folder|Save As|Library|File Upload|File Operation Progress|Confirm to replace files|Rename).*";
       };
       float = true;
+      stay_focused = true;
     }
-{
+    {
       name = "float-steam-popups";
       match = {
         class = "^[Ss]team$";
@@ -51,6 +52,7 @@
         title = "^(Save As|Choose Files|Open File|Open Folder)$";
       };
       size = "800 600";
+      stay_focused = true;
     }
     {
       name = "pip-browser";
@@ -79,12 +81,22 @@
       blur_popups = true;
     }
     {
-      name = "blur-overlays";
+      name = "blur-swaync";
       match = {
-        namespace = "^(rofi|swaync-control-center|swaync-notification-window)$";
+        namespace = "^(swaync-control-center|swaync-notification-window)$";
       };
       blur = true;
       ignore_alpha = 0.1;
+      animation = "slide left";
+    }
+    {
+      name = "blur-rofi";
+      match = {
+        namespace = "^(rofi)$";
+      };
+      blur = true;
+      ignore_alpha = 0.1;
+      animation = "popin";
     }
   ];
 }
