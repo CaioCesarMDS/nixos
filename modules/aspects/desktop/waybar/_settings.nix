@@ -218,6 +218,7 @@
     on-click-right = "rfkill toggle bluetooth";
     tooltip = true;
   };
+
   network = {
     format-icons = {
       wifi = [
@@ -227,22 +228,24 @@
         "<span size='12pt'>󰤥</span>"
         "<span size='12pt'>󰤨</span>"
       ];
-      ethernet = "<span size='12pt'>󰈀</span>";
-      linked = "<span size='12pt'>󰖂</span>";
+      ethernet = "<span size='14pt'>󰈀</span>";
+      linked = "<span size='12pt'>󰲝</span>";
       disabled = "<span size='12pt'>󰤭</span>";
-      disconnected = "<span size='12pt'>󰤩</span>";
+      disconnected = "<span size='12pt'>󰲛</span>";
     };
     format-wifi = "{icon}";
     format-ethernet = "{icon}";
     format-linked = "{icon}";
     format-disconnected = "{icon}";
     format-disabled = "{icon}";
-    tooltip-format-wifi = "{essid}\nSignal: {signalStrength}%\nIP: {ipaddr}/{cidr}\n↓ {bandwidthDownBits}  ↑ {bandwidthUpBits}";
+    tooltip-format = "{ifname}";
+    tooltip-format-wifi = "{essid}\nSignal: {signalStrength}%\nIP: {ipaddr}/{cidr}\n↓ {bandwidthDownBytes}  ↑ {bandwidthUpBytes}";
     tooltip-format-ethernet = "{ifname}\nIP: {ipaddr}/{cidr}\n↓ {bandwidthDownBytes}  ↑ {bandwidthUpBytes}";
+    tooltip-format-linked = "{ifname}\nConnected, waiting for IP";
     tooltip-format-disconnected = "Disconnected";
-    tooltip-format-disabled = "Wi-Fi disabled";
-    on-click = "rofi-network-manager";
-    on-click-right = "rfkill toggle wifi";
+    tooltip-format-disabled = "Disabled";
+    on-click = "network-manager";
+    on-click-right = "kitty -e nmtui";
     tooltip = true;
     max-length = 20;
     interval = 5;
