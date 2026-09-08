@@ -38,6 +38,9 @@
 
           "tab.inactiveBackground" = ui.colors.bg;
           "tab.activeBackground" = ui.colors.surface;
+
+          "input.background" = ui.colors.surface;
+          "input.border" = ui.colors.accent;
         };
 
         "editor.lineHeight" = 1.8;
