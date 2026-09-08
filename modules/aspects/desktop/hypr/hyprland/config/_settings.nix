@@ -6,6 +6,8 @@
       gaps_in = ui.spacing.gapsIn;
       gaps_out = ui.spacing.gapsOut;
       layout = "dwindle";
+      "col.active_border" = ui.colors.accent;
+      "col.inactive_border" = ui.colors.surface;
     };
 
     dwindle = {

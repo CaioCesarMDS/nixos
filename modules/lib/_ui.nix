@@ -45,7 +45,7 @@ in
   };
   border = {
     radius = 8;
-    width = 0;
+    width = 2;
   };
   spacing = {
     gapsIn = 3;
