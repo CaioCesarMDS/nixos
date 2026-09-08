@@ -64,11 +64,60 @@ in
       style = "slide";
     }
     {
+      leaf = "windowsMove";
+      enabled = true;
+      speed = 3;
+      bezier = "balanced";
+    }
+
+    {
       leaf = "workspaces";
       enabled = true;
       speed = 4;
       bezier = "flow";
       style = "slide";
+    }
+    {
+      leaf = "specialWorkspace";
+      enabled = true;
+      speed = 4;
+      bezier = "flow";
+      style = "slidevert";
+    }
+
+    {
+      leaf = "fadeIn";
+      enabled = true;
+      speed = 3;
+      bezier = "balanced";
+    }
+    {
+      leaf = "fadeOut";
+      enabled = true;
+      speed = 2;
+      bezier = "crisp";
+    }
+
+    {
+      leaf = "border";
+      enabled = true;
+      speed = 4;
+      bezier = "smooth";
+    }
+
+    {
+      leaf = "layersIn";
+      enabled = true;
+      speed = 3;
+      bezier = "balanced";
+      style = "fade";
+    }
+    {
+      leaf = "layersOut";
+      enabled = true;
+      speed = 2;
+      bezier = "crisp";
+      style = "fade";
     }
   ];
 }
