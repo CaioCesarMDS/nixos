@@ -80,6 +80,7 @@ in
   (bind "SUPER + SHIFT + N" (dsp.exec "network-manager"))
   (bind "SUPER + SHIFT + B" (dsp.exec "blueman-manager"))
   (bind "SUPER + EQUAL" (dsp.exec "calculator"))
+  (bind "SUPER + period" (dsp.exec "character-picker"))
 
   # --- Wallpaper Management ---
   (bind "SUPER + SHIFT + W" (dsp.exec "wallpaper-picker"))

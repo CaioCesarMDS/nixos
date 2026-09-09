@@ -1,4 +1,4 @@
-{ config, pkgs, ui }:
+{ config, pkgs, ui, ... }:
 {
   confirmTheme = pkgs.writeText "confirm.rasi" (
     import ./_confirm.nix { inherit ui; }
@@ -18,6 +18,10 @@
 
   launcherTheme = pkgs.writeText "launcher.rasi" (
     import ./_launcher.nix { inherit config ui; }
+  );
+
+  characterPicker = pkgs.writeText "character-picker.rasi" (
+    import ./_character-picker.nix { inherit ui; }
   );
 
   calculatorTheme = pkgs.writeText "calculator.rasi" (
