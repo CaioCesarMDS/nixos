@@ -10,7 +10,6 @@ let
   dsp = {
     exec = cmd: lua ''hl.dsp.exec_cmd("${cmd}")'';
     close = lua "hl.dsp.window.close()";
-    exit = lua "hl.dsp.exit()";
     float = lua ''hl.dsp.window.float({ action = "toggle" })'';
     floatSized =
       x: y:
@@ -69,12 +68,17 @@ in
   (bind "SUPER + F" (dsp.exec fileManager))
   (bind "SUPER + R" (dsp.exec "launcher"))
 
-  # --- System & Utilities ---
-  (bind "SUPER + Delete" dsp.exit)
+  # --- System Controls & Menus ---
+  (bind "SUPER + Delete" (dsp.exec "hyprshutdown"))
+  (bind "SUPER + SHIFT + Delete" (
+    dsp.exec "hyprshutdown -t 'Shutting down...' --post-cmd 'shutdown -P 0'"
+  ))
+  (bind "SUPER + ALT + Delete" (dsp.exec "hyprshutdown -t 'Restarting...' --post-cmd 'reboot'"))
   (bind "SUPER + ESCAPE" (dsp.exec "power-menu"))
-  (bind "SUPER + CTRL + L" (dsp.exec "hyprlock"))
+  (bind "SUPER + ALT + L" (dsp.exec "hyprlock"))
   (bind "SUPER + A" (dsp.exec "swaync-client -t -sw"))
-  (bind "SUPER + N" (dsp.exec "network-manager"))
+  (bind "SUPER + SHIFT + N" (dsp.exec "network-manager"))
+  (bind "SUPER + SHIFT + B" (dsp.exec "blueman-manager"))
 
   # --- Wallpaper Management ---
   (bind "SUPER + SHIFT + W" (dsp.exec "wallpaper-picker"))
@@ -96,24 +100,24 @@ in
     dsp.exec "hyprshot -m output -f $(date +%Y-%m-%d_%H-%M-%S).png -o ~/Pictures/Screenshots"
   ))
 
-  # --- Zoom ---
+  # --- Accessibility / Screen Zoom ---
   (bind "SUPER + ALT + mouse_up" (lua "function() hl.config({ cursor = { zoom_factor = 1.5 } }) end"))
   (bind "SUPER + ALT + mouse_down" (
     lua "function() hl.config({ cursor = { zoom_factor = 1.0 } }) end"
   ))
 
-  # --- Window Management ---
+  # --- Window State & Layout ---
   (bind "SUPER + C" dsp.close)
   (bind "SUPER + SHIFT + C" (dsp.exec "hyprctl kill"))
   (bind "SUPER + W" (dsp.floatSized 1000 660))
   (bind "SUPER + ALT + W" dsp.float)
-  (bind "SUPER + ALT + J" (dsp.layout "togglesplit"))
   (bind "SUPER + P" dsp.pseudo)
   (bind "SUPER + SPACE" dsp.maximize)
+  (bind "SUPER + ALT + J" (dsp.layout "togglesplit"))
   (bind "SUPER + bracketleft" (dsp.layout "splitratio -0.05"))
   (bind "SUPER + bracketright" (dsp.layout "splitratio +0.05"))
 
-  # --- Focus & Window Movement ---
+  # --- Window Navigation & Movement ---
   (bind "SUPER + H" (dsp.focus "left"))
   (bind "SUPER + L" (dsp.focus "right"))
   (bind "SUPER + K" (dsp.focus "up"))
@@ -123,7 +127,13 @@ in
   (bind "SUPER + SHIFT + K" (dsp.swap "up"))
   (bind "SUPER + SHIFT + J" (dsp.swap "down"))
 
-  # --- Workspace Navigation ---
+  # --- Window Resizing ---
+  (bindOpts "SUPER + SHIFT + Right" (dsp.resizeActive 30 0) { repeating = true; })
+  (bindOpts "SUPER + SHIFT + Left" (dsp.resizeActive (-30) 0) { repeating = true; })
+  (bindOpts "SUPER + SHIFT + Up" (dsp.resizeActive 0 (-30)) { repeating = true; })
+  (bindOpts "SUPER + SHIFT + Down" (dsp.resizeActive 0 30) { repeating = true; })
+
+  # --- Workspace Navigation & Scratchpad ---
   (bind "SUPER + CTRL + Right" (dsp.focusWorkspace "r+1"))
   (bind "SUPER + CTRL + Left" (dsp.focusWorkspace "r-1"))
   (bind "SUPER + mouse_down" (dsp.focusWorkspace "e+1"))
@@ -132,14 +142,8 @@ in
   (bind "SUPER + SHIFT + S" (dsp.moveToSpecial "special"))
   (bind "SUPER + ALT + S" (dsp.moveToSpecialSilent "special"))
 
-  # --- Window Resizing ---
-  (bindOpts "SUPER + SHIFT + Right" (dsp.resizeActive 30 0) { repeating = true; })
-  (bindOpts "SUPER + SHIFT + Left" (dsp.resizeActive (-30) 0) { repeating = true; })
-  (bindOpts "SUPER + SHIFT + Up" (dsp.resizeActive 0 30) { repeating = true; })
-  (bindOpts "SUPER + SHIFT + Down" (dsp.resizeActive 0 (-30)) { repeating = true; })
-
-  # --- Media & Hardware Keys ---
-  (bindOpts "XF86AudioRaiseVolume" (dsp.exec "wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+") {
+  # --- Audio & Hardware Controls ---
+  (bindOpts "XF86AudioRaiseVolume" (dsp.exec "wpctl set-volume -l 1.0 @DEFAULT_AUDIO_SINK@ 5%+") {
     locked = true;
     repeating = true;
   })
@@ -151,13 +155,13 @@ in
     locked = true;
   })
 
-  # --- Media Player ---
+  # --- Media Controls ---
   (bindOpts "XF86AudioPlay" (dsp.exec "playerctl play-pause") { locked = true; })
   (bindOpts "XF86AudioNext" (dsp.exec "playerctl next") { locked = true; })
   (bindOpts "XF86AudioPrev" (dsp.exec "playerctl previous") { locked = true; })
   (bindOpts "XF86AudioStop" (dsp.exec "playerctl stop") { locked = true; })
 
-  # --- Brightness ---
+  # --- Display Brightness ---
   (bindOpts "XF86MonBrightnessUp" (dsp.exec "brightnessctl set +10%") {
     locked = true;
     repeating = true;
@@ -167,7 +171,7 @@ in
     repeating = true;
   })
 
-  # --- Mouse Bindings ---
+  # --- Mouse Window Controls ---
   (bindOpts "SUPER + mouse:272" dsp.drag { mouse = true; })
   (bindOpts "SUPER + mouse:273" dsp.resize { mouse = true; })
 ]
