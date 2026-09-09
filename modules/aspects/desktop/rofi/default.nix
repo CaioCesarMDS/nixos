@@ -2,6 +2,7 @@
 {
   den.aspects.rofi = {
     includes = [
+      den.aspects.calculator
       den.aspects.power-menu
       den.aspects.launcher
       den.aspects.clipboard-manager

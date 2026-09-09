@@ -79,6 +79,7 @@ in
   (bind "SUPER + A" (dsp.exec "swaync-client -t -sw"))
   (bind "SUPER + SHIFT + N" (dsp.exec "network-manager"))
   (bind "SUPER + SHIFT + B" (dsp.exec "blueman-manager"))
+  (bind "SUPER + EQUAL" (dsp.exec "calculator"))
 
   # --- Wallpaper Management ---
   (bind "SUPER + SHIFT + W" (dsp.exec "wallpaper-picker"))

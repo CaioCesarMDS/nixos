@@ -20,6 +20,10 @@
     import ./_launcher.nix { inherit config ui; }
   );
 
+  calculatorTheme = pkgs.writeText "calculator.rasi" (
+    import ./_calculator.nix { inherit ui; }
+  );
+
   wallpaperPickerTheme = pkgs.writeText "wallpaper-picker.rasi" (
     import ../themes/_wallpaper-picker.nix { inherit ui; }
   );
